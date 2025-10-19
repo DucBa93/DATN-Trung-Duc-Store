@@ -1,25 +1,31 @@
 export const registerFormControls = [
   {
     name: "userName",
-    label: "User Name",
-    placeholder: "Enter your user name",
+    label: "Tên người dùng",
+    placeholder: "Nhập tên người dùng",
     componentType: "input",
     type: "text",
   },
   {
     name: "email",
     label: "Email",
-    placeholder: "Enter your email",
+    placeholder: "Nhập Email",
     componentType: "input",
     type: "email",
   },
   {
     name: "password",
-    label: "Password",
-    placeholder: "Enter your password",
+    label: "Mật khẩu",
+    placeholder: "Nhập mật khẩu",
     componentType: "input",
     type: "password",
   },
+  {
+    name: "confirmPassword",
+    label: "Xác nhận mật khẩu",
+    placeholder: "Nhập lại mật khẩu",
+    type: "password",
+  }
 ];
 
 export const loginFormControls = [

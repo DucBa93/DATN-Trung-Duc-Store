@@ -29,7 +29,6 @@ function App() {
   },[dispatch])
 
   if(isLoading) return  <Skeleton className="h-[600px] w-[800px] bg-black" />
-  console.log(isLoading, user);
   
 
   return (

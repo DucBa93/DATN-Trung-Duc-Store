@@ -10,7 +10,8 @@ import { toast } from "sonner"
 const initialState = {
   userName: '',
   email:'',
-  password:''
+  password:'',
+  confirmPassword: ''
 }
 const register = () => {
   const [formData, setFormData] = useState(initialState)
@@ -20,10 +21,18 @@ const register = () => {
 
   function onSubmit (event){
     event.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+    toast.error("Mật khẩu xác nhận không khớp!", {
+      classNames: {
+        toast: 'bg-red-600 text-white',
+      },
+    });
+    return; // Dừng lại, không gửi request
+  }
     dispatch(registerUser(formData)).then((data)=> {
       
-      if (data?.payload?.success){
-        toast.success("Dang ky thanh cong !")
+      if (data?.payload?.success ){
+        toast.success("Đăng ký thành công !")
         navigate("/auth/login")
       } else {
         toast.error(data?.payload?.message, {
@@ -39,17 +48,17 @@ const register = () => {
   return (
     <div className='mx-auto w-full max-w-md space-y-6'>
       <div className='text-center'>
-        <h1 className='text-3xl font-bold tracking-tight text-foreground'>Create new account</h1>
+        <h1 className='text-3xl font-bold tracking-tight text-foreground'>Tạo tài khoản mới</h1>
         <p className='mt-2'>
-            Already have an account ?
+            Bạn đã có tài khoản ?
             <Link className='font-medium ml-2 text-primary hover:!underline' to={'/auth/login'}>
-              Login            
+              Đăng nhập            
             </Link>
         </p>
       </div>
       <CommonForm 
         formControls={registerFormControls}
-        buttonText={'Sign Up'}
+        buttonText={'Đăng ký'}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}

@@ -4,7 +4,6 @@ import { Navigate, useLocation } from 'react-router-dom'
 const CheckAuth = ({ isAuthenticated, user, children }) => {
 
     const location = useLocation()
-    console.log(location.pathname, isAuthenticated);
     
     //useLocation là một hook của React Router v6+ cho phép bạn lấy thông tin về đường dẫn hiện tại (URL) và state được truyền khi navigate.
     // location là một object có dạng:

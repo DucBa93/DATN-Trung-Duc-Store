@@ -20,11 +20,12 @@ function AdminProductTile({
         </div>
         <CardContent>
           <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
+          <p className="italic">{product?.description}</p>
           <div className="flex justify-between items-center mb-2">
             <span
               className={`${
                 product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
+              } text-lg font-semibold text-gray-500 `}
             >
               ${product?.price}
             </span>
