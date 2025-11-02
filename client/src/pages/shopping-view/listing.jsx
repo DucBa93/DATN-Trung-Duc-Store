@@ -2,6 +2,7 @@ import ProductFilter from "@/components/shopping-view/filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "antd";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +13,18 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { useLocation } from "react-router-dom";
 import {
   fetchAllFilteredProducts,
+  fetchAllProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
 import { ArrowUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -38,8 +43,9 @@ function createSearchParamsHelper(filterParams) {
 }
 
 function ShoppingListing() {
+
   const dispatch = useDispatch();
-  const { productList, productDetails } = useSelector(
+  const { productList, productDetails, pagination, allProducts } = useSelector(
     (state) => state.shopProducts
   );
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -48,13 +54,36 @@ function ShoppingListing() {
   const [sort, setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const { toast } = useToast();
+
+
+  // const { toast } = useToast();
+
 
   const categorySearchParam = searchParams.get("category");
 
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, []);
   function handleSort(value) {
     setSort(value);
+
   }
+  const handleChangePage = (page) => {
+    const params = new URLSearchParams(location.search);
+    params.set("page", page);
+    setSearchParams(params);
+
+    dispatch(
+      fetchAllFilteredProducts({
+        filterParams: filters,
+        sortParams: sort,
+        page,
+        limit: pagination.limit,
+      })
+    );
+  };
+
+
 
   function handleFilter(getSectionId, getCurrentOption) {
     let cpyFilters = { ...filters };
@@ -84,41 +113,27 @@ function ShoppingListing() {
   }
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
     let getCartItems = cartItems.items || [];
-
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
+        (item) => item.productId === getCurrentProductId && item.selectedSize === size
       );
+
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
-          toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
-            variant: "destructive",
-          });
 
+        if (getQuantity + 1 > getTotalStock) {
+          toast.warning(`Cửa hàng chỉ còn ${getQuantity} sản phẩm`);
           return;
         }
       }
     }
 
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
-    });
+    toast.info("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
+    return;
   }
+
+
 
   useEffect(() => {
     setSort("price-lowtohigh");
@@ -143,7 +158,7 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  console.log(productList, "productListproductListproductList");
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
@@ -184,14 +199,26 @@ function ShoppingListing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {productList && productList.length > 0
             ? productList.map((productItem) => (
-                <ShoppingProductTile
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
+              <ShoppingProductTile
+                handleGetProductDetails={handleGetProductDetails}
+                product={productItem}
+                handleAddtoCart={handleAddtoCart}
+              />
+            ))
             : null}
+
         </div>
+        {pagination?.totalPages > 1 && (
+          <div className="flex justify-center mt-10">
+            <Pagination
+              current={pagination.page}
+              total={pagination.totalPages * pagination.limit}
+              pageSize={pagination.limit}
+              onChange={handleChangePage}
+              showSizeChanger={false}
+            />
+          </div>
+        )}
       </div>
       <ProductDetailsDialog
         open={openDetailsDialog}

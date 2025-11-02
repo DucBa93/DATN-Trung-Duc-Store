@@ -9,8 +9,8 @@ function AdminProductTile({
   handleDelete,
 }) {
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div>
+    <Card className="w-full min-w-[250px] max-w-sm mx-auto flex flex-col h-full">
+      <div className="flex flex-col h-full">
         <div className="relative">
           <img
             src={product?.image}
@@ -18,33 +18,45 @@ function AdminProductTile({
             className="w-full h-[300px] object-cover rounded-t-lg"
           />
         </div>
-        <CardContent>
+
+        {/* Card Content - chiếm hết không gian còn lại */}
+        <CardContent className="flex flex-col flex-grow">
           <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
-          <p className="italic">{product?.description}</p>
-          <div className="flex justify-between items-center mb-2">
+          <p className="italic flex-grow">{product?.description}</p>
+
+          <div className="flex gap-4 justify-between items-center mt-3">
             <span
               className={`${
                 product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-gray-500 `}
+              } text-lg font-semibold text-black`}
             >
-              ${product?.price}
+              {product?.price.toLocaleString()} đ
             </span>
             {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">${product?.salePrice}</span>
+              <span className="text-lg font-bold">{product?.salePrice.toLocaleString()} đ</span>
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
+
+        {/* Footer luôn dính đáy */}
+        <CardFooter className="mt-auto flex justify-between items-center">
           <Button
             onClick={() => {
               setOpenCreateProductsDialog(true);
               setCurrentEditedId(product?._id);
               setFormData(product);
             }}
+            className="w-[45%]"
           >
             Edit
           </Button>
-          <Button onClick={() => handleDelete(product?._id)}>Delete</Button>
+          <Button
+            onClick={() => handleDelete(product?._id)}
+            variant="destructive"
+            className="w-[45%]"
+          >
+            Delete
+          </Button>
         </CardFooter>
       </div>
     </Card>

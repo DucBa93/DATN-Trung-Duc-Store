@@ -65,21 +65,48 @@ const addProduct = async (req, res) => {
 
 //fetch all products
 
+// fetch all products
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({});
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const search = req.query.search || "";
+
+    // nếu có search thì lọc theo tên, ngược lại lấy tất cả
+    const query = search
+      ? { title: { $regex: search, $options: "i" } }
+      : {};
+
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Thêm skip + limit để phân trang
+    const listOfProducts = await Product.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // sắp theo sản phẩm mới nhất
+
     res.status(200).json({
       success: true,
       data: listOfProducts,
+      pagination: {
+        page,
+        totalPages,
+        limit,
+      },
     });
   } catch (e) {
-    console.log(e);
+    console.log("❌ fetchAllProducts error:", e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred while fetching products",
     });
   }
 };
+
+
+
+
 
 //edit a product
 const editProduct = async (req, res) => {

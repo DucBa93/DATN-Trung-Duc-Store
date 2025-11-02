@@ -68,7 +68,6 @@ export const addProductFormElements = [
       { id: "women", label: "Women" },
       { id: "kids", label: "Kids" },
       { id: "accessories", label: "Accessories" },
-      { id: "footwear", label: "Footwear" },
     ],
   },
   {
@@ -79,9 +78,8 @@ export const addProductFormElements = [
       { id: "nike", label: "Nike" },
       { id: "adidas", label: "Adidas" },
       { id: "puma", label: "Puma" },
-      { id: "levi", label: "Levi's" },
-      { id: "zara", label: "Zara" },
-      { id: "h&m", label: "H&M" },
+      { id: "new_balance", label: "New Balance" },
+      { id: "mlb", label: "MLB" },
     ],
   },
   {
@@ -134,11 +132,6 @@ export const shoppingViewHeaderMenuItems = [
     path: "/shop/listing",
   },
   {
-    id: "footwear",
-    label: "Footwear",
-    path: "/shop/listing",
-  },
-  {
     id: "accessories",
     label: "Accessories",
     path: "/shop/listing",
@@ -155,16 +148,14 @@ export const categoryOptionsMap = {
   women: "Women",
   kids: "Kids",
   accessories: "Accessories",
-  footwear: "Footwear",
 };
 
 export const brandOptionsMap = {
   nike: "Nike",
   adidas: "Adidas",
   puma: "Puma",
-  levi: "Levi",
-  zara: "Zara",
-  "h&m": "H&M",
+  new_balance: "New Balance",
+  mlb: "MLB",
 };
 
 export const filterOptions = {
@@ -173,15 +164,14 @@ export const filterOptions = {
     { id: "women", label: "Women" },
     { id: "kids", label: "Kids" },
     { id: "accessories", label: "Accessories" },
-    { id: "footwear", label: "Footwear" },
+    
   ],
   brand: [
     { id: "nike", label: "Nike" },
     { id: "adidas", label: "Adidas" },
     { id: "puma", label: "Puma" },
-    { id: "levi", label: "Levi's" },
-    { id: "zara", label: "Zara" },
-    { id: "h&m", label: "H&M" },
+    { id: "new_balance", label: "New Balance" },
+    { id: "mlb", label: "MLB" },
   ],
 };
 

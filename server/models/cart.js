@@ -19,6 +19,11 @@ const CartSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
+        size: {
+          type: String,
+          enum: ["38", "38.5", "39", "40", "41", "42", "42.5", "43"],
+          required: true,
+        },
       },
     ],
   },

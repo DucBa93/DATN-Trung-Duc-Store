@@ -1,27 +1,34 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./auth-slice";
+import adminProductsSlice from "./admin/products-slice";
+import adminOrderSlice from "./admin/order-slice";
 
-import authReducer from './auth-slice'
-import adminProductsReducer from './admin/products-slice'
-import shoppingProductSlice from './shop/products-slice'
+import shopProductsSlice from "./shop/products-slice";
 import shopCartSlice from "./shop/cart-slice";
+import shopAddressSlice from "./shop/address-slice";
+import shopOrderSlice from "./shop/order-slice";
+import shopSearchSlice from "./shop/search-slice";
 import shopReviewSlice from "./shop/review-slice";
-
-
-
-/*File store.js = nơi tạo Redux store.
-
-Nó gom tất cả reducer con (authReducer, cartReducer, …) vào một global state.
-
-Sau đó bạn export ra để cung cấp cho toàn bộ ứng dụng.*/
+import userReducer from "./shop/user-slice";
+import commonFeatureSlice from "./common-slice";
 
 const store = configureStore({
-    reducer: {
-        auth: authReducer,
-        adminProducts: adminProductsReducer,
-        shopProducts: shoppingProductSlice,
-        shopCart: shopCartSlice,
-        shopReview: shopReviewSlice
-    },
-})
+  reducer: {
+    auth: authReducer,
 
-export default store
+    adminProducts: adminProductsSlice,
+    adminOrder: adminOrderSlice,
+
+    shopProducts: shopProductsSlice,
+    shopCart: shopCartSlice,
+    shopAddress: shopAddressSlice,
+    shopOrder: shopOrderSlice,
+    shopSearch: shopSearchSlice,
+    shopReview: shopReviewSlice,
+    user: userReducer,
+
+    commonFeature: commonFeatureSlice,
+  },
+});
+
+export default store;

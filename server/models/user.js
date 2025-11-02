@@ -19,7 +19,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: 'user'
     },
-})
+    avatar: {
+        type: String,
+        default: ""
+    }
+
+},
+{ timestamps: true })
 
 const User = mongoose.model('user', UserSchema)
 module.exports = User

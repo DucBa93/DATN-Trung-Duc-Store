@@ -3,14 +3,15 @@ import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
+import { toast } from "sonner";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { productList } = useSelector((state) => state.shopProducts);
+  const { allProducts } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
-  const { toast } = useToast();
-
+  
   function handleUpdateQuantity(getCartItem, typeOfAction) {
     if (typeOfAction == "plus") {
       let getCartItems = cartItems.items || [];
@@ -20,10 +21,10 @@ function UserCartItemsContent({ cartItem }) {
           (item) => item.productId === getCartItem?.productId
         );
 
-        const getCurrentProductIndex = productList.findIndex(
+        const getCurrentProductIndex = allProducts.findIndex(
           (product) => product._id === getCartItem?.productId
         );
-        const getTotalStock = productList[getCurrentProductIndex].totalStock;
+        const getTotalStock = allProducts[getCurrentProductIndex].totalStock;
 
         console.log(getCurrentProductIndex, getTotalStock, "getTotalStock");
 
@@ -49,24 +50,21 @@ function UserCartItemsContent({ cartItem }) {
           typeOfAction === "plus"
             ? getCartItem?.quantity + 1
             : getCartItem?.quantity - 1,
+        size: getCartItem?.size
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast({
-          title: "Cart item is updated successfully",
-        });
+        toast.success('Cập nhật giỏ hàng thành công ')
       }
     });
   }
 
   function handleCartItemDelete(getCartItem) {
     dispatch(
-      deleteCartItem({ userId: user?.id, productId: getCartItem?.productId })
+      deleteCartItem({ userId: user?.id, productId: getCartItem?.productId, size: getCartItem?.size })
     ).then((data) => {
       if (data?.payload?.success) {
-        toast({
-          title: "Cart item is deleted successfully",
-        });
+        toast.info("Xoá sản phẩm thành công")
       }
     });
   }
@@ -105,11 +103,11 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-          $
+          
           {(
             (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
             cartItem?.quantity
-          ).toFixed(2)}
+          ).toLocaleString()} đ
         </p>
         <Trash
           onClick={() => handleCartItemDelete(cartItem)}

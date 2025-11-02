@@ -1,50 +1,52 @@
-import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
 const CheckAuth = ({ isAuthenticated, user, children }) => {
+  const location = useLocation();
 
-    const location = useLocation()
-    
-    //useLocation là một hook của React Router v6+ cho phép bạn lấy thông tin về đường dẫn hiện tại (URL) và state được truyền khi navigate.
-    // location là một object có dạng:
+  // 1️⃣ Chưa đăng nhập mà không phải trang login/register thì ép về login
+  if (
+    !isAuthenticated &&
+    !(location.pathname.includes("/login") || location.pathname.includes("/register"))
+  ) {
+    return <Navigate to="/auth/login" />;
+  }
 
-    // {
-    //   pathname: "/profile",   // đường dẫn hiện tại
-    //   search: "?tab=info",    // query string
-    //   hash: "#section1",      // hash (nếu có)
-    //   state: { userId: 123 }, // state được truyền từ navigate()
-    //   key: "abc123"           // unique key cho navigation
-    // }
-    if (
-        !isAuthenticated && // nếu chưa đăng nhập
-        !(location.pathname.includes('/login') || location.pathname.includes('/register'))) // và đường dẫn hiện tại KHÔNG phải login/register
-    {
-        return <Navigate to="/auth/login" /> // thì ép điều hướng về /auth/login
+  // 2️⃣ Đã đăng nhập mà vẫn vào login/register thì điều hướng theo role
+  if (
+    isAuthenticated &&
+    (location.pathname.includes("/login") || location.pathname.includes("/register"))
+  ) {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin/dashboard" />;
+    } else if (user?.role === "shipper") {
+      return <Navigate to="/shipper/orders" />;
+    } else {
+      return <Navigate to="/shop/home" />;
     }
+  }
 
-    if (isAuthenticated && (location.pathname.includes('/login') || location.pathname.includes('/register'))) {
-        if (user?.role === "admin")
-            // user?.role dùng Optional Chaining(?.):
+  // 3️⃣ Nếu user là thường mà cố vào admin → chặn
+  if (isAuthenticated && user?.role !== "admin" && location.pathname.includes("admin")) {
+    return <Navigate to="/unauth-page" />;
+  }
 
-            // Nếu user khác null / undefined → lấy user.role.
+  // 4️⃣ Nếu admin mà vào shop → chặn
+  if (isAuthenticated && user?.role === "admin" && location.pathname.includes("shop")) {
+    return <Navigate to="/admin/dashboard" />;
+  }
 
-            // Nếu user = null hoặc undefined → toàn bộ biểu thức trả về undefined
-        {
-            return <Navigate to="/admin/dashboard" />
-        } else {
-            return <Navigate to="/shop/home" />
-        }
-    }
+  // 5️⃣ Nếu shipper mà vào admin hoặc shop → chặn
+  if (
+    isAuthenticated &&
+    user?.role === "shipper" &&
+    (location.pathname.includes("admin") || location.pathname.includes("shop"))
+  ) {
+    return <Navigate to="/shipper/dashboard" />;
+  }
 
-    if(isAuthenticated && user?.role !== "admin" && (location.pathname.includes('admin'))){
-        return <Navigate to="/unauth-page"/>
-    }
+  // 6️⃣ Mặc định render children
+  return <>{children}</>;
+};
 
-    if(isAuthenticated && user?.role === "admin" && (location.pathname.includes('shop'))){
-        return <Navigate to="/admin/dashboard"/>
-    }
-
-    return <>{children}</>;
-}
-
-export default CheckAuth
+export default CheckAuth;

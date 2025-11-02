@@ -1,6 +1,8 @@
 import {
   BadgeCheck,
   ChartNoAxesCombined,
+  ChartPie,
+  CircleUser,
   LayoutDashboard,
   ShoppingBasket,
 } from "lucide-react";
@@ -32,6 +34,18 @@ const adminSidebarMenuItems = [
     label: "Orders",
     path: "/admin/orders",
     icon: <BadgeCheck />,
+  },
+  {
+    id: "accounts",
+    label: "Accounts",
+    path: "/admin/accounts",
+    icon: <CircleUser />,
+  },
+  {
+    id: "statistics",
+    label: "Số liệu",
+    path: "/admin/statistics",
+    icon: <ChartPie />,
   },
 ];
 

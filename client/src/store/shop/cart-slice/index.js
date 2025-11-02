@@ -8,19 +8,21 @@ const initialState = {
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ userId, productId, quantity }) => {
+  async ({ userId, productId, quantity, size }) => {
     const response = await axios.post(
       "http://localhost:5000/api/shop/cart/add",
       {
         userId,
         productId,
         quantity,
+        size, // ✅ thêm size ở đây
       }
     );
 
     return response.data;
   }
 );
+
 
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
@@ -35,9 +37,10 @@ export const fetchCartItems = createAsyncThunk(
 
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
-  async ({ userId, productId }) => {
+  async ({ userId, productId , size }) => {
+    console.log("🛒 DELETE PARAM:", userId, productId, size);
     const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}`
+      `http://localhost:5000/api/shop/cart/${userId}/${productId}/${size}`
     );
 
     return response.data;
@@ -46,16 +49,17 @@ export const deleteCartItem = createAsyncThunk(
 
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
-  async ({ userId, productId, quantity }) => {
+  async ({ userId, productId, quantity, size }) => {
     const response = await axios.put(
       "http://localhost:5000/api/shop/cart/update-cart",
       {
         userId,
         productId,
         quantity,
+        size
       }
     );
-
+    console.log(userId, productId, quantity, size);
     return response.data;
   }
 );
@@ -97,7 +101,6 @@ const shoppingCartSlice = createSlice({
       })
       .addCase(updateCartQuantity.rejected, (state) => {
         state.isLoading = false;
-        state.cartItems = [];
       })
       .addCase(deleteCartItem.pending, (state) => {
         state.isLoading = true;

@@ -7,7 +7,7 @@ function AdminLayout() {
   const [openSidebar, setOpenSidebar] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-screen pr-6 ">
       <div >
         <AdminSideBar open={openSidebar} setOpen={setOpenSidebar} />
       </div>

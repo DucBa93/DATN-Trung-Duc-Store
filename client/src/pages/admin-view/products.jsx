@@ -2,6 +2,7 @@ import ProductImageUpload from "../../components/admin_view/image-upload";
 import AdminProductTile from "../../components/admin_view/product-title";
 import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
+import { Input, Pagination } from "antd";
 import {
   Sheet,
   SheetContent,
@@ -38,89 +39,114 @@ function AdminProducts() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const { productList } = useSelector((state) => state.adminProducts);
+  const { productList, pagination } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  function onSubmit(event) {
-    event.preventDefault();
-
-    currentEditedId !== null
-      ? dispatch(
-          editProduct({
-            id: currentEditedId,
-            formData,
-          })
-        ).then((data) => {
-          console.log(data, "edit");
-
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            setFormData(initialFormData);
-            setOpenCreateProductsDialog(false);
-            setCurrentEditedId(null);
-          }
-        })
-      : dispatch(
-          addNewProduct({
-            ...formData,
-            image: uploadedImageUrl,
-          })
-        ).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            setOpenCreateProductsDialog(false);
-            setImageFile(null);
-            setFormData(initialFormData);
-            toast({
-              title: "Product add successfully",
-            });
-          }
-        });
-  }
-
-  function handleDelete(getCurrentProductId) {
-    dispatch(deleteProduct(getCurrentProductId)).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchAllProducts());
-      }
-    });
-  }
-
-  function isFormValid() {
-    return Object.keys(formData)
-      .filter((currentKey) => currentKey !== "averageReview")
-      .map((key) => formData[key] !== "")
-      .every((item) => item);
-  }
-
   useEffect(() => {
-    dispatch(fetchAllProducts());
+    dispatch(fetchAllProducts({ page: 1, limit: 9 }));
   }, [dispatch]);
 
-  console.log(formData, "productList");
+  const handleSearch = () => {
+    dispatch(fetchAllProducts({ search: searchTerm, page: 1, limit: 9 }));
+  };
+
+  const handleChangePage = (page) => {
+    dispatch(fetchAllProducts({ page, limit: pagination.limit, search: searchTerm }));
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const action =
+      currentEditedId !== null
+        ? editProduct({ id: currentEditedId, formData })
+        : addNewProduct({ ...formData, image: uploadedImageUrl });
+
+    dispatch(action).then((data) => {
+      if (data?.payload?.success) {
+        toast({
+          title:
+            currentEditedId !== null
+              ? "Cập nhật sản phẩm thành công"
+              : "Thêm sản phẩm thành công",
+        });
+        dispatch(fetchAllProducts({ page: 1, limit: 9 }));
+        setOpenCreateProductsDialog(false);
+        setCurrentEditedId(null);
+        setFormData(initialFormData);
+        setImageFile(null);
+      }
+    });
+  };
+
+  const handleDelete = (id) => {
+    dispatch(deleteProduct(id)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(fetchAllProducts({ page: 1, limit: 9 }));
+      }
+    });
+  };
+
+  const isFormValid = () =>
+    Object.keys(formData)
+      .filter((key) => key !== "averageReview")
+      .every((key) => formData[key] !== "");
 
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductsDialog(true)}>
-          Add New Product
-        </Button>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Tìm kiếm theo tên sản phẩm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+            <Button onClick={handleSearch}>Tìm kiếm</Button>
+          </div>
+          <Button onClick={() => setOpenCreateProductsDialog(true)}>
+            + Thêm sản phẩm
+          </Button>
+        </div>
+
+        {/* Danh sách sản phẩm */}
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+          {productList?.length > 0 ? (
+            productList.map((product) => (
               <AdminProductTile
+                key={product._id}
+                product={product}
                 setFormData={setFormData}
                 setOpenCreateProductsDialog={setOpenCreateProductsDialog}
                 setCurrentEditedId={setCurrentEditedId}
-                product={productItem}
                 handleDelete={handleDelete}
               />
             ))
-          : null}
+          ) : (
+            <p className="text-gray-500 text-center col-span-3">
+              Không có sản phẩm nào
+            </p>
+          )}
+        </div>
+
+        {/* Phân trang */}
+        {pagination?.totalPages > 1 && (
+          <div className="flex justify-center mt-10">
+            <Pagination
+              current={pagination.page}
+              total={pagination.totalPages * pagination.limit}
+              pageSize={pagination.limit}
+              onChange={handleChangePage}
+              showSizeChanger={false}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Sheet thêm/sửa */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -132,9 +158,10 @@ function AdminProducts() {
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
             <SheetTitle>
-              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+              {currentEditedId !== null ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
             </SheetTitle>
           </SheetHeader>
+
           <ProductImageUpload
             imageFile={imageFile}
             setImageFile={setImageFile}
@@ -144,14 +171,15 @@ function AdminProducts() {
             imageLoadingState={imageLoadingState}
             isEditMode={currentEditedId !== null}
           />
+
           <div className="py-6">
             <CommonForm
               onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
-              buttonText={currentEditedId !== null ? "Edit" : "Add"}
+              buttonText={currentEditedId !== null ? "Lưu" : "Thêm"}
               formControls={addProductFormElements}
-              isBtnDisabled={!isFormValid()}
+              isBtnDisabled={false}
             />
           </div>
         </SheetContent>
