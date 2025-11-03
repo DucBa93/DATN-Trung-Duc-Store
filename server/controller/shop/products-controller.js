@@ -37,9 +37,12 @@ const getFilteredProducts = async (req, res) => {
       filters.category = { $in: categories };
     }
 
-    if (brand) {
-      const brands = Array.isArray(brand) ? brand : brand.split(",");
-      filters.brand = { $in: brands };
+    if (req.query.brand) {
+      const brands = Array.isArray(req.query.brand)
+        ? req.query.brand
+        : req.query.brand.split(",");
+
+      filters.brand = brands.map(b => b.toLowerCase().replace(/\s+/g, "-"));
     }
 
     // 🎯 Tạo object sort

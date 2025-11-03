@@ -31,16 +31,15 @@ function createSearchParamsHelper(filterParams) {
 
   for (const [key, value] of Object.entries(filterParams)) {
     if (Array.isArray(value) && value.length > 0) {
-      const paramValue = value.join(",");
-
-      queryParams.push(`${key}=${encodeURIComponent(paramValue)}`);
+      value.forEach((val) => {
+        queryParams.push(`${key}=${encodeURIComponent(val)}`);
+      });
     }
   }
 
-  console.log(queryParams, "queryParams");
-
   return queryParams.join("&");
 }
+
 
 function ShoppingListing() {
 
@@ -133,6 +132,20 @@ function ShoppingListing() {
     return;
   }
 
+useEffect(() => {
+  const entries = [...searchParams.entries()];
+  const newFilters = {};
+
+  entries.forEach(([key, value]) => {
+  const normalized = value.toLowerCase().replace(/\s+/g, "-");
+
+  if (!newFilters[key]) newFilters[key] = [];
+  newFilters[key].push(normalized);
+});
+
+
+  setFilters(newFilters);
+}, []);
 
 
   useEffect(() => {

@@ -88,7 +88,7 @@ const authSlice = createSlice({
             .addCase(registerUser.pending, (state) => {
                 state.isLoading = true;
             })
-            .addCase(registerUser.fulfilled, (state) => {
+            .addCase(registerUser.fulfilled, (state, action) => {
                 console.log("Login payload:", action.payload);
                 state.isLoading = false;
                 state.user = null;
@@ -107,8 +107,8 @@ const authSlice = createSlice({
                 state.user = action.payload.success ? action.payload.user : null;
                 state.isAuthenticated = !!action.payload.success;
                 if (action.payload.success) {
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-    }
+                    localStorage.setItem("user", JSON.stringify(action.payload.user));
+                }
             })
             .addCase(loginUser.rejected, (state) => {
                 state.isLoading = false;
@@ -123,8 +123,8 @@ const authSlice = createSlice({
                 state.user = action.payload.success ? action.payload.user : null;
                 state.isAuthenticated = !!action.payload.success;
                 if (action.payload.success) {
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-    }
+                    localStorage.setItem("user", JSON.stringify(action.payload.user));
+                }
             })
             .addCase(checkAuth.rejected, (state) => {
                 state.isLoading = false;
@@ -135,6 +135,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.user = null;
                 state.isAuthenticated = false;
+                localStorage.removeItem("user");
             });
     }
 });
