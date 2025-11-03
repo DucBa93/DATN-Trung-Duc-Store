@@ -13,5 +13,5 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  base: "https://github.com/DucBa93/DATN-Trung-Duc-Store"
+
 })
