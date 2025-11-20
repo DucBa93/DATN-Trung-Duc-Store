@@ -18,6 +18,10 @@ const StaRoutes = require("./routes/admin/statistics-routes");
 const shipperRoutes = require("./routes/admin/shipper-routes");
 
 
+//chatbot 
+const chatbotRouter = require("./routes/shop/chatbot-routes");
+
+
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
 const shopAddressRouter = require("./routes/shop/address-routes");
@@ -42,7 +46,7 @@ const PORT = process.env.PORT || 5000;
 // --- MIDDLEWARE ---
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://your-frontend.vercel.app'],
+    origin: ['http://localhost:5173', 'https://datn-trung-duc-store.vercel.app'],
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
@@ -64,6 +68,9 @@ app.use("/api/admin/orders", adminOrderRouter);
 app.use("/api/admin/users", userRoutes);
 app.use("/api/admin/statistics", StaRoutes);
 app.use("/api/admin/shipper", shipperRoutes);
+
+//Chat bot
+app.use("/api/chatbot", chatbotRouter);
 
 
 app.use("/api/shop/products", shopProductsRouter);

@@ -33,6 +33,7 @@ import { fetchAllProducts } from "./store/shop/products-slice";
 import ForgotPassword from "./pages/auth/forgotPassword";
 import ResetPassword from "./pages/auth/resetPassword";
 import ShipperInformation from "./components/shipper_view/shipperInformation";
+import Chatbot from "./components/chatbot/chatbot";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -126,6 +127,7 @@ function App() {
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Chatbot />
     </div>
   );
 }
