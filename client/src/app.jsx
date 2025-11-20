@@ -30,8 +30,8 @@ import ShipperAccounts from "./components/admin_view/shipperAccount";
 import AdminStatistic from "./components/admin_view/statisstic";
 import ScrollToTop from "./components/common/scrollToTop";
 import { fetchAllProducts } from "./store/shop/products-slice";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
+import ForgotPassword from "./pages/auth/forgotPassword";
+import ResetPassword from "./pages/auth/resetPassword";
 import ShipperInformation from "./components/shipper_view/shipperInformation";
 
 function App() {
