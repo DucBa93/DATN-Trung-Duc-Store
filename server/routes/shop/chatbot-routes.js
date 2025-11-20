@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const axios = require("axios");
+const OpenAI = require("openai");
 
-// API key OpenAI của bạn
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// 🔑 Lấy API KEY từ Render environment
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 router.post("/ask", async (req, res) => {
   try {
@@ -13,25 +15,17 @@ router.post("/ask", async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: message }],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    res.json({
-      reply: response.data.choices[0].message.content,
+    // Gọi OpenAI chat API
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini", // Model rẻ và tốt
+      messages: [{ role: "user", content: message }],
     });
-  } catch (err) {
-    console.error("Chatbot error:", err.response?.data || err.message);
+
+    const reply = completion.choices[0].message.content;
+
+    res.json({ reply });
+  } catch (error) {
+    console.error("Chatbot error:", error.message);
     res.status(500).json({ error: "Chatbot error" });
   }
 });
