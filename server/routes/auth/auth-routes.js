@@ -8,7 +8,7 @@ const {
     resetPassword
 } = require('../../controller/auth/auth-controller')
 const crypto = require('crypto');
-const User = require('../../models/User');
+const User = require('../../models/user');
 const nodemailer = require('nodemailer');
 
 const router = express.Router()

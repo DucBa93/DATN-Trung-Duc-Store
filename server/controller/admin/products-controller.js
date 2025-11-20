@@ -1,8 +1,8 @@
 const { imageUploadUtil } = require("../../helpers/cloudinary");
-const Product = require("../../models/Product");
-const User = require("../../models/User"); // 👈 thêm dòng này
+const Product = require("../../models/product");
+const User = require("../../models/user"); // 👈 thêm dòng này
 const { notifyUser } = require("../../socket");
-const Notification = require("../../models/Notification");
+const Notification = require("../../models/notification");
 
 // Upload ảnh chính
 const handleImageUpload = async (req, res) => {

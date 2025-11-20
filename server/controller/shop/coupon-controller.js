@@ -1,5 +1,5 @@
-const Coupon = require("../../models/Coupon");
-const User = require("../../models/User");
+const Coupon = require("../../models/coupon");
+const User = require("../../models/user");
 
 // ✅ Get all coupons (Admin)
 exports.getAllCoupons = async (req, res) => {

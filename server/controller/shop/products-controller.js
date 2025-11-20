@@ -1,4 +1,4 @@
-const Product = require("../../models/Product");
+const Product = require("../../models/product");
 
 
 // 🟢 Lấy danh sách sản phẩm có lọc, sắp xếp, phân trang

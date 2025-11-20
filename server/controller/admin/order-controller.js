@@ -1,6 +1,6 @@
-const Order = require("../../models/Order");
+const Order = require("../../models/order");
 const { notifyUser, notifyAdmin } = require("../../socket")
-const Notification = require("../../models/Notification")
+const Notification = require("../../models/notification")
 // 🟢 Lấy tất cả đơn hàng (Admin) - sắp xếp theo ngày mới nhất + phân trang
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {

@@ -1,4 +1,4 @@
-const Shipper = require("../../models/Shipper");
+const Shipper = require("../../models/shipper");
 
 // Lấy thông tin shipper
 const getShipperInfo = async (req, res) => {

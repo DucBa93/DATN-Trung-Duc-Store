@@ -1,5 +1,5 @@
-const Cart = require("../../models/Cart");
-const Product = require("../../models/Product");
+const Cart = require("../../models/cart");
+const Product = require("../../models/product");
 // 🛒 Thêm sản phẩm vào giỏ hàng
 // Cart controller: addToCart
 const addToCart = async (req, res) => {

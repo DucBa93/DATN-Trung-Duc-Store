@@ -1,7 +1,7 @@
 // server/controllers/shop/user-controller.js
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
-const User = require("../../models/User");
+const User = require("../../models/user");
 const cloudinary = require("../../helpers/cloudinary"); // bên dưới giả sử bạn có helper cloudinary.js
 const { imageUploadUtil } = require("../../helpers/cloudinary");
 

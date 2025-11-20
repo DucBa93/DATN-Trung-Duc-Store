@@ -1,12 +1,12 @@
 const paypal = require("../../helpers/paypal");
-const Order = require("../../models/Order");
-const Cart = require("../../models/Cart");
-const Product = require("../../models/Product");
-const Coupon = require("../../models/Coupon");
+const Order = require("../../models/order");
+const Cart = require("../../models/cart");
+const Product = require("../../models/product");
+const Coupon = require("../../models/coupon");
 const { notifyAdmin } = require("../../socket");
-const User = require("../../models/User");
+const User = require("../../models/user");
 
-const Notification = require("../../models/Notification")
+const Notification = require("../../models/notification")
 
 
 // tạo đơn hàng + redirect PayPal
