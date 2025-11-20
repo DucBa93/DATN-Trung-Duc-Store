@@ -21,7 +21,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@reduxjs/toolkit": "^2.9.0",
     "antd": "^5.27.6",
-    "axios": "^1.11.0",
+    "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^25.6.3",

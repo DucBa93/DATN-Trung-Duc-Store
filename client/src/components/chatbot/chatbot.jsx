@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "@/config/axios"; 
+import axios from "axios"; 
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
