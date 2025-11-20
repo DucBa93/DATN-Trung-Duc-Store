@@ -7,7 +7,7 @@ import {
   createCoupon,
   updateCoupon,
 } from "@/store/shop/coupon-slice";
-import CouponForm from "@/components/admin_view/CouponForm";
+import CouponForm from "@/components/admin_view/couponForm";
 import dayjs from "dayjs";
 
 function CouponList() {
