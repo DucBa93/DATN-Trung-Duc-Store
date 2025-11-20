@@ -13,7 +13,7 @@ export default function Chatbot() {
     setHistory((prev) => [...prev, userMsg]);
 
     try {
-      const res = await axios.post("/api/chatbot/ask", {
+      const res = await axios.post("https://datn-trung-duc-store.onrender.com/api/chatbot/ask", {
         message: msg,
         userId: localStorage.getItem("userId"),
       });
