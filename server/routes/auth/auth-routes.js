@@ -3,9 +3,13 @@ const {
     register,
     login,
     logout,
-    authMiddleWare
-
+    authMiddleWare,
+    forgotPassword,
+    resetPassword
 } = require('../../controller/auth/auth-controller')
+const crypto = require('crypto');
+const User = require('../../models/User');
+const nodemailer = require('nodemailer');
 
 const router = express.Router()
 
@@ -21,5 +25,7 @@ router.get('/check-auth', authMiddleWare, (req, res) => {
         user
     })
 })
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 module.exports = router

@@ -2,202 +2,321 @@ const paypal = require("../../helpers/paypal");
 const Order = require("../../models/Order");
 const Cart = require("../../models/Cart");
 const Product = require("../../models/Product");
+const Coupon = require("../../models/Coupon");
+const { notifyAdmin } = require("../../socket");
+const User = require("../../models/User");
 
+const Notification = require("../../models/Notification")
+
+
+// tạo đơn hàng + redirect PayPal
 const createOrder = async (req, res) => {
-  const USD_RATE = 0.000041; // ví dụ tỷ giá
-
   try {
     const {
       userId,
+      cartId,
       cartItems,
       addressInfo,
-      orderStatus,
-      paymentMethod,
-      paymentStatus,
       totalAmount,
+      discountValue,
+      appliedCoupon,
+      orderStatus = "pending",
+      paymentMethod = "paypal",
+      paymentStatus = "pending",
       orderDate,
       orderUpdateDate,
-      paymentId,
-      payerId,
-      cartId,
+      shippingFee = 0
     } = req.body;
+
+    if (!cartItems || !cartItems.length)
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+
+    // Convert cart items to ensure color/size correct
+    const newCartItems = await Promise.all(
+      cartItems.map(async (item) => {
+        const product = await Product.findById(item.productId);
+        if (!product) throw new Error(`Product not found: ${item.title}`);
+
+        const variant = product.variants.find(v => v.color === item.color) || product.variants[0];
+        const sizeObj = variant.sizes.find(s => s.size === item.size) || variant.sizes[0];
+
+        return {
+          productId: item.productId,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          color: variant.color,
+          size: sizeObj.size,
+          image: item.image || variant.mainImage || product.image
+        };
+      })
+    );
+
+
+    // =============================================================
+    // ========================== COD ===============================
+    // =============================================================
+    if (paymentMethod === "cod") {
+      const newOrder = new Order({
+        userId,
+        cartId,
+        cartItems: newCartItems,
+        addressInfo,
+        orderStatus: "confirmed",
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        totalAmount,
+        shippingFee,
+        finalAmount: totalAmount + shippingFee - discountValue,
+        discountValue,
+        appliedCoupon,
+        orderDate,
+        orderUpdateDate,
+      });
+
+      await newOrder.save();
+
+      // Increase coupon count
+      if (appliedCoupon?.code) {
+        await Coupon.findOneAndUpdate({ code: appliedCoupon.code }, { $inc: { usedCount: 1 } });
+      }
+
+      // decrease stock
+      for (const item of newCartItems) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+
+          // tìm variant theo màu
+          const variant = product.variants.find(
+            v => v.color.trim().toLowerCase() === item.color.trim().toLowerCase()
+          );
+          if (!variant) continue;
+
+          // tìm size
+          const sizeObj = variant.sizes.find(
+            s => s.size.trim().toLowerCase() === item.size.trim().toLowerCase()
+          );
+          if (!sizeObj) continue;
+
+          // giảm stock đúng size
+          sizeObj.stock = Math.max(sizeObj.stock - item.quantity, 0);
+          // tăng số lượng đã bán
+          product.sold += item.quantity;
+          // cập nhật tổng tồn kho
+          product.totalStock = product.variants.reduce((sum, v) => {
+            return sum + v.sizes.reduce((s, si) => s + si.stock, 0);
+          }, 0);
+
+          await product.save();
+        }
+      }
+
+
+      // Remove cart
+      await Cart.findByIdAndDelete(cartId);
+
+      // Notify admin
+      const user = await User.findById(userId);
+      const userName = user ? user.userName : "Unknown";
+      const message = `🛒 User ${userName} vừa tạo đơn #${newOrder._id} (COD), Tổng: ${(totalAmount + shippingFee - discountValue).toLocaleString()}đ`;
+
+      await Notification.create({ message, type: "order-new", userId: null });
+      notifyAdmin(message);
+
+      return res.status(201).json({
+        success: true,
+        message: "Order created with COD",
+        orderId: newOrder._id,
+      });
+    }
+
+
+
+    // =============================================================
+    // ======================== PAYPAL =============================
+    // =============================================================
+    const VND_TO_USD = 0.000040;
+
+    const itemsUSD = newCartItems.map((item) => ({
+      name: item.title,
+      sku: item.productId,
+      price: (Number(item.price) * VND_TO_USD).toFixed(2),
+      currency: "USD",
+      quantity: Number(item.quantity),
+    }));
+
+    const subtotalUSD = itemsUSD.reduce((sum, i) => sum + parseFloat(i.price) * i.quantity, 0);
+    const discountUSD = Number(((discountValue || 0) * VND_TO_USD).toFixed(2));
+    const shippingUSD = Number((shippingFee * VND_TO_USD).toFixed(2));
+    const totalUSD = Number((subtotalUSD - discountUSD + shippingUSD).toFixed(2));
+
+    if (totalUSD < 0.01)
+      return res.status(400).json({ success: false, message: "Total too low for PayPal" });
+
 
     const create_payment_json = {
       intent: "sale",
-      payer: {
-        payment_method: "paypal",
-      },
+      payer: { payment_method: "paypal" },
       redirect_urls: {
         return_url: "http://localhost:5173/shop/paypal-return",
         cancel_url: "http://localhost:5173/shop/paypal-cancel",
       },
       transactions: [
         {
-          item_list: {
-            items: cartItems.map((item) => ({
-              name: item.title,
-              sku: item.productId,
-              price: parseFloat((item.price * USD_RATE).toFixed(2)),
-              currency: "USD",
-              quantity: item.quantity,
-            })),
-          },
+          item_list: { items: itemsUSD },
           amount: {
             currency: "USD",
-            total: parseFloat((totalAmount * USD_RATE).toFixed(2)),
+            total: totalUSD.toFixed(2),
+            details: {
+              subtotal: subtotalUSD.toFixed(2),
+              shipping: shippingUSD.toFixed(2),
+              shipping_discount: `-${discountUSD.toFixed(2)}`,
+              tax: "0.00",
+            },
           },
-          description: "description",
+          description: `Order from user ${userId} - coupon: ${appliedCoupon || "none"}`,
         },
       ],
     };
 
-    paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
-      if (error) {
-        console.log(error);
 
-        return res.status(500).json({
-          success: false,
-          message: "Error while creating paypal payment",
-        });
-      } else {
-        const newlyCreatedOrder = new Order({
-          userId,
-          cartId,
-          cartItems,
-          addressInfo,
-          orderStatus,
-          paymentMethod,
-          paymentStatus,
-          totalAmount,
-          orderDate,
-          orderUpdateDate,
-          paymentId,
-          payerId,
-        });
-
-        await newlyCreatedOrder.save();
-
-        const approvalURL = paymentInfo.links.find(
-          (link) => link.rel === "approval_url"
-        ).href;
-
-        res.status(201).json({
-          success: true,
-          approvalURL,
-          orderId: newlyCreatedOrder._id,
-        });
+    paypal.payment.create(create_payment_json, async (err, payment) => {
+      if (err) {
+        console.log("PayPal create error:", err.response || err);
+        return res
+          .status(500)
+          .json({ success: false, message: "PayPal create payment error" });
       }
+
+      const approvalURL = payment.links.find((l) => l.rel === "approval_url")?.href;
+
+      const newOrder = new Order({
+        userId,
+        cartId,
+        cartItems: newCartItems,
+        addressInfo,
+        orderStatus,
+        paymentMethod: "paypal",
+        paymentStatus,
+        totalAmount,
+        shippingFee,
+        finalAmount: totalAmount + shippingFee - discountValue,
+        discountValue,
+        appliedCoupon,
+        orderDate,
+        orderUpdateDate,
+      });
+
+      await newOrder.save();
+
+      // coupon usage
+      if (appliedCoupon?.code) {
+        await Coupon.findOneAndUpdate({ code: appliedCoupon.code }, { $inc: { usedCount: 1 } });
+      }
+
+      const user = await User.findById(userId);
+      const userName = user ? user.userName : "Unknown";
+      const message = `🛒 User ${userName} vừa tạo đơn #${newOrder._id}, tổng: ${(totalAmount + shippingFee - discountValue).toLocaleString()}đ`;
+
+      await Notification.create({ message, type: "order-new", userId: null });
+      notifyAdmin(message);
+
+      res.status(201).json({
+        success: true,
+        orderId: newOrder._id,
+        approvalURL,
+      });
     });
   } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured!",
-    });
+    console.log("createOrder catch error:", e);
+    res.status(500).json({ success: false, message: e.message });
   }
 };
 
+
+// capture payment + confirm order
 const capturePayment = async (req, res) => {
+
+
   try {
     const { paymentId, payerId, orderId } = req.body;
 
-    let order = await Order.findById(orderId);
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order can not be found",
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (order.paymentStatus === "paid") {
+      return res.status(200).json({
+        success: true,
+        message: "Order already paid",
+        data: order
       });
     }
-
     order.paymentStatus = "paid";
     order.orderStatus = "confirmed";
     order.paymentId = paymentId;
     order.payerId = payerId;
 
-    for (let item of order.cartItems) {
-      let product = await Product.findById(item.productId);
+    // giảm stock sản phẩm theo từng variant
+    for (const item of order.cartItems) {
+      const product = await Product.findById(item.productId);
+      if (!product) continue;
 
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Not enough stock for this product ${product.title}`,
-        });
-      }
+      const variant = product.variants.find(
+        v => v.color.trim().toLowerCase() === item.color.trim().toLowerCase()
+      );
+      if (!variant) continue;
 
-      product.totalStock -= item.quantity;
+      const sizeObj = variant.sizes.find(
+        s => s.size.trim().toLowerCase() === item.size.trim().toLowerCase()
+      );
+      if (!sizeObj) continue;
+
+      // giảm tồn kho đúng size
+      sizeObj.stock = Math.max(sizeObj.stock - item.quantity, 0);
+      // tăng số lượng bán
+      product.sold = product.sold + (item.quantity / 2);
+      // cập nhật tổng tồn kho
+      product.totalStock = product.variants.reduce((sum, v) => {
+        return sum + v.sizes.reduce((s, si) => s + si.stock, 0);
+      }, 0);
 
       await product.save();
     }
 
-    const getCartId = order.cartId;
-    await Cart.findByIdAndDelete(getCartId);
 
+    // xóa cart
+    await Cart.findByIdAndDelete(order.cartId);
     await order.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Order confirmed",
-      data: order,
-    });
+    res.status(200).json({ success: true, message: "Order confirmed", data: order });
   } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured!",
-    });
+    console.log("capturePayment error:", e);
+    res.status(500).json({ success: false, message: "Some error occured!" });
   }
 };
 
 const getAllOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-
     const orders = await Order.find({ userId });
+    if (!orders.length) return res.status(404).json({ success: false, message: "No orders found" });
 
-    if (!orders.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No orders found!",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: orders,
-    });
+    res.status(200).json({ success: true, data: orders });
   } catch (e) {
     console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured!",
-    });
+    res.status(500).json({ success: false, message: "Some error occured!" });
   }
 };
 
 const getOrderDetails = async (req, res) => {
   try {
     const { id } = req.params;
-
     const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found!",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: order,
-    });
+    res.status(200).json({ success: true, data: order });
   } catch (e) {
     console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured!",
-    });
+    res.status(500).json({ success: false, message: "Some error occured!" });
   }
 };
 

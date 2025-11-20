@@ -1,7 +1,7 @@
-import ProductImageUpload from "../../components/admin_view/image-upload";
 import AdminProductTile from "../../components/admin_view/product-title";
 import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
+import ProductImageUpload from "../../components/admin_view/image-upload";
 import { Input, Pagination } from "antd";
 import {
   Sheet,
@@ -19,6 +19,7 @@ import {
 } from "@/store/admin/products-slice";
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import VariantsEditor from "../../components/admin_view/variantsEditor";
 
 const initialFormData = {
   image: null,
@@ -28,8 +29,9 @@ const initialFormData = {
   brand: "",
   price: "",
   salePrice: "",
-  totalStock: "",
+  importPrice: "",
   averageReview: 0,
+  variants: [],
 };
 
 function AdminProducts() {
@@ -40,6 +42,8 @@ function AdminProducts() {
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [subImages, setSubImages] = useState([]);
+  const [variantLoading, setVariantLoading] = useState({});
 
   const { productList, pagination } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
@@ -56,13 +60,73 @@ function AdminProducts() {
   const handleChangePage = (page) => {
     dispatch(fetchAllProducts({ page, limit: pagination.limit, search: searchTerm }));
   };
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, image: uploadedImageUrl }));
+  }, [uploadedImageUrl]);
+  console.log("Submitting payload:", {
+    ...formData,
+    image: uploadedImageUrl
+  });
 
   const onSubmit = (e) => {
     e.preventDefault();
+
+    // Check ít nhất có 1 variant
+    if (!formData.variants || formData.variants.length === 0) {
+      toast({ title: "Vui lòng thêm ít nhất một màu sản phẩm" });
+      return;
+    }
+
+    // Check tất cả variant có color + mainImage + ít nhất 1 size
+    const invalidVariant = formData.variants.find(
+      (v) => !v.color || !v.mainImage || !v.sizes || v.sizes.length === 0
+    );
+    if (invalidVariant) {
+      toast({ title: "Vui lòng điền đầy đủ thông tin cho tất cả các màu và ảnh" });
+      return;
+    }
+
+    // Build variants payload chuẩn
+    const variantsPayload = formData.variants.map((v) => ({
+      color: v.color,
+      image: v.mainImage || "",
+      subImages: v.subImages || [],
+      sizes: v.sizes
+        .filter((s) => s.size)
+        .map((s) => ({
+          size: s.size,
+          stock: s.stock === "" ? 0 : parseInt(s.stock, 10),
+        })),
+    }));
+
+    // Tính tổng stock
+    const totalStock = variantsPayload.reduce((acc, v) => {
+      const variantStock = v.sizes.reduce((sum, s) => sum + s.stock, 0);
+      return acc + variantStock;
+    }, 0);
+
+    // Payload cuối cùng gửi lên backend
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      brand: formData.brand,
+      price: formData.price === "" ? 0 : parseFloat(formData.price),
+      salePrice: formData.salePrice === "" ? 0 : parseFloat(formData.salePrice),
+      importPrice: formData.importPrice === "" ? 0 : parseFloat(formData.importPrice),
+      totalStock,
+      variants: variantsPayload,
+      // image chính lấy từ variant đầu tiên nếu backend cần
+      image: variantsPayload[0]?.image || "",
+      // subImages chung nếu muốn, hoặc bỏ
+      subImages: formData.subImages || [],
+      averageReview: 0,
+    };
+
     const action =
       currentEditedId !== null
-        ? editProduct({ id: currentEditedId, formData })
-        : addNewProduct({ ...formData, image: uploadedImageUrl });
+        ? editProduct({ id: currentEditedId, formData: payload })
+        : addNewProduct(payload);
 
     dispatch(action).then((data) => {
       if (data?.payload?.success) {
@@ -73,31 +137,49 @@ function AdminProducts() {
               : "Thêm sản phẩm thành công",
         });
         dispatch(fetchAllProducts({ page: 1, limit: 9 }));
+
+        // Reset form
         setOpenCreateProductsDialog(false);
         setCurrentEditedId(null);
         setFormData(initialFormData);
-        setImageFile(null);
+        setSubImages([]);
+        setVariantLoading({});
       }
     });
   };
 
+
+
+
+
+
   const handleDelete = (id) => {
+    // hiển thị confirm
+    const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?");
+    if (!isConfirmed) return;
+
     dispatch(deleteProduct(id)).then((data) => {
       if (data?.payload?.success) {
+        toast({
+          title: "Xóa sản phẩm thành công",
+        });
         dispatch(fetchAllProducts({ page: 1, limit: 9 }));
       }
     });
   };
 
+
   const isFormValid = () =>
     Object.keys(formData)
       .filter((key) => key !== "averageReview")
       .every((key) => formData[key] !== "");
+console.log(productList);
 
   return (
     <Fragment>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">          
+
           <div className="flex gap-2">
             <Input
               placeholder="Tìm kiếm theo tên sản phẩm..."
@@ -111,7 +193,7 @@ function AdminProducts() {
             + Thêm sản phẩm
           </Button>
         </div>
-
+        
         {/* Danh sách sản phẩm */}
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
           {productList?.length > 0 ? (
@@ -162,7 +244,7 @@ function AdminProducts() {
             </SheetTitle>
           </SheetHeader>
 
-          <ProductImageUpload
+          {/* <ProductImageUpload
             imageFile={imageFile}
             setImageFile={setImageFile}
             uploadedImageUrl={uploadedImageUrl}
@@ -170,7 +252,11 @@ function AdminProducts() {
             setImageLoadingState={setImageLoadingState}
             imageLoadingState={imageLoadingState}
             isEditMode={currentEditedId !== null}
-          />
+
+            subImages={subImages}
+            setSubImages={setSubImages}
+          /> */}
+
 
           <div className="py-6">
             <CommonForm
@@ -182,6 +268,13 @@ function AdminProducts() {
               isBtnDisabled={false}
             />
           </div>
+
+          <VariantsEditor
+            variants={Array.isArray(formData.variants) ? formData.variants : []}
+            setVariants={(v) => setFormData(prev => ({ ...prev, variants: v }))}
+          />
+
+
         </SheetContent>
       </Sheet>
     </Fragment>

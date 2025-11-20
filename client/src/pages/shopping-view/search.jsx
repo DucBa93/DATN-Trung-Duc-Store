@@ -11,8 +11,10 @@ import {
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function SearchProducts() {
+  const { t } = useTranslation();
   const [keyword, setKeyword] = useState("");
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -93,12 +95,12 @@ function SearchProducts() {
             name="keyword"
             onChange={(event) => setKeyword(event.target.value)}
             className="py-6"
-            placeholder="Search Products..."
+            placeholder={t("Nhập tên sản phẩm ...")}
           />
         </div>
       </div>
       {!searchResults.length ? (
-        <h1 className="text-5xl font-extrabold">No result found!</h1>
+        <h1 className="text-2xl font-extrabold">{t("Không có sản phẩm nào được tìm kiếm ...")}</h1>
       ) : null}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {searchResults.map((item) => (

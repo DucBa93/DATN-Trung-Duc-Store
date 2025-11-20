@@ -1,44 +1,49 @@
 import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
+import { deleteCartItem, updateCartQuantity, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
+import { useTranslation } from "react-i18next";
+
 
 function UserCartItemsContent({ cartItem }) {
+  const { t } = useTranslation();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { productList } = useSelector((state) => state.shopProducts);
   const { allProducts } = useSelector((state) => state.shopProducts);
   const dispatch = useDispatch();
-  
-  function handleUpdateQuantity(getCartItem, typeOfAction) {
-    if (typeOfAction == "plus") {
-      let getCartItems = cartItems.items || [];
 
+  console.log(cartItem.stock);
+
+  function handleUpdateQuantity(getCartItem, typeOfAction) {
+    if (typeOfAction === "plus") {
+      const getCartItems = cartItems.items || [];
+      const currentQty = getCartItem.quantity;
+      const stock = getCartItem.stock;
+      if (typeOfAction === "plus") {
+    if (currentQty + 1 > stock) {
+      toast.warning(`Cửa hàng chỉ còn ${stock} sản phẩm`);
+      return; // ⛔ KHÔNG GỬI REQUEST LÊN BACKEND
+    }
+  }
       if (getCartItems.length) {
         const indexOfCurrentCartItem = getCartItems.findIndex(
-          (item) => item.productId === getCartItem?.productId
+          (item) => item.productId === getCartItem?.productId && item.size === getCartItem?.size
         );
 
-        const getCurrentProductIndex = allProducts.findIndex(
-          (product) => product._id === getCartItem?.productId
+        // tìm sản phẩm trong allProducts
+        const currentProduct = allProducts.find(
+          (product) => product._id.toString() === getCartItem?.productId.toString()
         );
-        const getTotalStock = allProducts[getCurrentProductIndex].totalStock;
 
-        console.log(getCurrentProductIndex, getTotalStock, "getTotalStock");
-
-        if (indexOfCurrentCartItem > -1) {
-          const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
-          if (getQuantity + 1 > getTotalStock) {
-            toast({
-              title: `Only ${getQuantity} quantity can be added for this item`,
-              variant: "destructive",
-            });
-
-            return;
-          }
+        if (!currentProduct) {
+          toast.warning("Sản phẩm không tồn tại");
+          return;
         }
+
+
       }
     }
 
@@ -50,24 +55,41 @@ function UserCartItemsContent({ cartItem }) {
           typeOfAction === "plus"
             ? getCartItem?.quantity + 1
             : getCartItem?.quantity - 1,
-        size: getCartItem?.size
+        size: getCartItem?.size,
+        color: getCartItem?.color,
       })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        toast.success('Cập nhật giỏ hàng thành công ')
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Cập nhật giỏ hàng thành công");
+      })
+      .catch((err) => {
+        toast.warning(err?.message || `Cửa hàng chỉ còn ${cartItem.stock} sản phẩm`);
+      });
+
+  }
+
+
+
+  function handleCartItemDelete(getCartItem) {
+
+    dispatch(
+      deleteCartItem({
+        userId: user?.id,
+        productId: getCartItem?.productId,
+        size: getCartItem?.size?.trim().toLowerCase(),
+        color: getCartItem?.color?.trim().toLowerCase(),
+      })
+    ).then((res) => {
+      if (res?.payload?.success) {
+        toast.info("Xoá sản phẩm thành công");
+        dispatch(fetchCartItems(user?.id));
       }
     });
   }
 
-  function handleCartItemDelete(getCartItem) {
-    dispatch(
-      deleteCartItem({ userId: user?.id, productId: getCartItem?.productId, size: getCartItem?.size })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        toast.info("Xoá sản phẩm thành công")
-      }
-    });
-  }
+
+
 
   return (
     <div className="flex items-center space-x-4">
@@ -78,6 +100,7 @@ function UserCartItemsContent({ cartItem }) {
       />
       <div className="flex-1">
         <h3 className="font-extrabold">{cartItem?.title}</h3>
+        <h5 className="">Size: {cartItem?.size} — {t(`Màu: ${cartItem?.color}`)}</h5>
         <div className="flex items-center gap-2 mt-1">
           <Button
             variant="outline"
@@ -103,7 +126,7 @@ function UserCartItemsContent({ cartItem }) {
       </div>
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-          
+
           {(
             (cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price) *
             cartItem?.quantity

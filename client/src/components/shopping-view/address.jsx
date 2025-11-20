@@ -11,6 +11,7 @@ import {
 } from "@/store/shop/address-slice";
 import AddressCard from "./address-card";
 import { useToast } from "../ui/use-toast";
+import { useTranslation } from "react-i18next";
 
 const initialAddressFormData = {
   address: "",
@@ -21,6 +22,7 @@ const initialAddressFormData = {
 };
 
 function Address({ setCurrentSelectedAddress, selectedId }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(initialAddressFormData);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const dispatch = useDispatch();
@@ -127,7 +129,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
       </div>
       <CardHeader>
         <CardTitle>
-          {currentEditedId !== null ? "Edit Address" : "Add New Address"}
+          {currentEditedId !== null ? `${t("Sửa địa chỉ")}` : `${t("Thêm địa chỉ mới")}`}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -135,7 +137,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
           formControls={addressFormControls}
           formData={formData}
           setFormData={setFormData}
-          buttonText={currentEditedId !== null ? "Edit" : "Add"}
+          buttonText={currentEditedId !== null ? `${t("Sửa")}` : `${t("Thêm")}`}
           onSubmit={handleManageAddress}
           isBtnDisabled={!isFormValid()}
         />

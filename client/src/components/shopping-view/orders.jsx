@@ -37,68 +37,93 @@ function ShoppingOrders() {
     if (orderDetails !== null) setOpenDetailsDialog(true);
   }, [orderDetails]);
 
-  console.log(orderDetails, "orderDetails");
+  console.log(orderList);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Order History</CardTitle>
+        <CardTitle>Lịch sử đặt hàng</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Order Date</TableHead>
-              <TableHead>Order Status</TableHead>
-              <TableHead>Order Price</TableHead>
+              <TableHead>Mã đơn hàng</TableHead>
+              <TableHead>Ngày đặt</TableHead>
+              <TableHead>Trạng thái đơn hàng</TableHead>
+              <TableHead>Giá sản phẩm</TableHead>
+              <TableHead>Phí ship</TableHead>
+              <TableHead>Giảm giá</TableHead>
+              <TableHead>Tổng tiền</TableHead>
               <TableHead>
                 <span className="sr-only">Details</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orderList && orderList.length > 0
-              ? orderList.map((orderItem) => (
-                  <TableRow>
-                    <TableCell>{orderItem?._id}</TableCell>
-                    <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`py-1 px-3 ${
-                          orderItem?.orderStatus === "confirmed"
-                            ? "bg-green-500"
-                            : orderItem?.orderStatus === "rejected"
-                            ? "bg-red-600"
-                            : "bg-black"
-                        }`}
-                      >
-                        {orderItem?.orderStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{orderItem?.totalAmount.toLocaleString()} đ</TableCell>
-                    <TableCell>
-                      <Dialog
-                        open={openDetailsDialog}
-                        onOpenChange={() => {
-                          setOpenDetailsDialog(false);
-                          dispatch(resetOrderDetails());
-                        }}
-                      >
-                        <Button
-                          onClick={() =>
-                            handleFetchOrderDetails(orderItem?._id)
-                          }
-                        >
-                          View Details
-                        </Button>
-                        <ShoppingOrderDetailsView orderDetails={orderDetails} />
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              : null}
-          </TableBody>
+  {orderList && orderList.length > 0
+    ? [...orderList]
+        .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate)) // ⬅️ thêm dòng này
+        .map((orderItem) => (
+          <TableRow key={orderItem?._id}>
+            <TableCell>{orderItem?._id || "N/A"}</TableCell>
+
+            <TableCell>{orderItem?.orderDate?.split("T")[0]}</TableCell>
+
+            <TableCell>
+              <Badge
+                className={`py-1 px-3 ${
+                  orderItem?.orderStatus === "confirmed"
+                    ? "bg-green-500"
+                    : orderItem?.orderStatus === "rejected"
+                    ? "bg-red-600"
+                    : "bg-black"
+                }`}
+              >
+                {orderItem?.orderStatus}
+              </Badge>
+            </TableCell>
+
+            <TableCell>
+              {orderItem?.totalAmount?.toLocaleString() || 0} đ
+            </TableCell>
+
+            <TableCell>
+              {orderItem?.shippingFee?.toLocaleString() || 0} đ
+            </TableCell>
+
+            <TableCell>
+              {orderItem?.discountValue.toLocaleString() || "Không có"}
+            </TableCell>
+
+            <TableCell>
+              {(orderItem?.totalAmount +
+                orderItem?.shippingFee -
+                orderItem?.discountValue)?.toLocaleString()} đ
+            </TableCell>
+
+            <TableCell>
+              <Dialog
+                open={openDetailsDialog}
+                onOpenChange={() => {
+                  setOpenDetailsDialog(false);
+                  dispatch(resetOrderDetails());
+                }}
+              >
+                <Button
+                  onClick={() => handleFetchOrderDetails(orderItem?._id)}
+                >
+                  Xem chi tiết
+                </Button>
+
+                <ShoppingOrderDetailsView orderDetails={orderDetails} />
+              </Dialog>
+            </TableCell>
+          </TableRow>
+        ))
+    : null}
+</TableBody>
+
         </Table>
       </CardContent>
     </Card>

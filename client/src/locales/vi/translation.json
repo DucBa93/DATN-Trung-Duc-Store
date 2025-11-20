@@ -1,0 +1,25 @@
+{
+  "menu": {
+    "home": "Trang chủ",
+    "products": "Sản phẩm",
+    "men":"Nam",
+    "women": "Nữ",
+    "kids": "Trẻ em",
+    "accessories": "Phụ kiện",
+    "search": "Tìm kiếm"
+  },
+  "filter": {
+    "category": "Danh mục",
+    "brand": "Thương hiệu"
+  },
+  "category": {
+    "men": "Nam",
+    "women": "Nữ",
+    "kids": "Trẻ em",
+    "accessories": "Phụ kiện"
+  }
+ 
+
+
+
+}

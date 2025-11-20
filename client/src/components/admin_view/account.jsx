@@ -25,13 +25,16 @@ function AdminAccounts() {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
     password: "",
     role: "user",
   });
+
+  // 🆕 State cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(9); // số user mỗi trang
 
   useEffect(() => {
     fetchUsers();
@@ -55,6 +58,7 @@ function AdminAccounts() {
       return name.includes(keyword) || email.includes(keyword);
     });
     setFiltered(result);
+    setCurrentPage(1); // reset về trang đầu khi tìm kiếm
   }, [search, users]);
 
   const openDialog = (user = null) => {
@@ -72,7 +76,6 @@ function AdminAccounts() {
     e.preventDefault();
     try {
       if (editingUser) {
-        // Nếu sửa, chỉ gửi password khi có giá trị
         const updateData = { ...formData };
         if (!updateData.password) delete updateData.password;
 
@@ -82,16 +85,13 @@ function AdminAccounts() {
         );
         toast.success("Cập nhật tài khoản thành công!");
       } else {
-        // Thêm mới thì gửi đầy đủ dữ liệu
         await axios.post("http://localhost:5000/api/admin/users", formData);
         toast.success("Thêm tài khoản thành công!");
       }
       fetchUsers();
       setIsOpen(false);
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Lỗi khi lưu tài khoản!"
-      );
+      toast.error(err.response?.data?.message || "Lỗi khi lưu tài khoản!");
     }
   };
 
@@ -105,6 +105,16 @@ function AdminAccounts() {
         toast.error("Không thể xóa tài khoản!");
       }
     }
+  };
+
+  // 🧮 Phân trang client-side
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   return (
@@ -146,12 +156,14 @@ function AdminAccounts() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((user) => (
+                {currentUsers.map((user) => (
                   <tr
                     key={user._id}
                     className="border-t hover:bg-gray-50 transition"
                   >
-                    <td className="px-4 py-2">{user.userName || "(Chưa có tên)"}</td>
+                    <td className="px-4 py-2">
+                      {user.userName || "(Chưa có tên)"}
+                    </td>
                     <td className="px-4 py-2">{user.email}</td>
                     <td className="px-4 py-2 capitalize">{user.role}</td>
                     <td className="px-4 py-2 text-center">
@@ -175,7 +187,7 @@ function AdminAccounts() {
                   </tr>
                 ))}
 
-                {filtered.length === 0 && (
+                {currentUsers.length === 0 && (
                   <tr>
                     <td
                       colSpan="4"
@@ -188,6 +200,40 @@ function AdminAccounts() {
               </tbody>
             </table>
           </div>
+
+          {/* 🧭 Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-4 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => goToPage(currentPage - 1)}
+              >
+                ← Trước
+              </Button>
+
+              {[...Array(totalPages)].map((_, i) => (
+                <Button
+                  key={i}
+                  variant={currentPage === i + 1 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => goToPage(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => goToPage(currentPage + 1)}
+              >
+                Sau →
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -229,7 +275,6 @@ function AdminAccounts() {
               />
             </div>
 
-            {/* 🆕 Trường mật khẩu luôn hiện, nhưng không bắt buộc khi sửa */}
             <div>
               <Label>
                 Mật khẩu {editingUser ? "(để trống nếu không đổi)" : ""}

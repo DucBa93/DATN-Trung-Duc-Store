@@ -24,9 +24,9 @@ function ShoppingAccount() {
         <div className="flex flex-col rounded-lg border bg-background p-6 shadow-sm">
           <Tabs defaultValue="info">
             <TabsList>
-              <TabsTrigger value="info">Information</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="address">Address</TabsTrigger>
+              <TabsTrigger value="info">Thông tin cá nhân</TabsTrigger>
+              <TabsTrigger value="orders">Đơn hàng</TabsTrigger>
+              <TabsTrigger value="address">Địa chỉ</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info">

@@ -13,4 +13,9 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  server: {
+  proxy: {
+    "/api": "http://localhost:5000",
+  },
+},
 })

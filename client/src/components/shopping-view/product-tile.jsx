@@ -2,12 +2,16 @@ import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
 import { Badge } from "../ui/badge";
+import { useTranslation } from "react-i18next";
+
 
 function ShoppingProductTile({
   product,
   handleGetProductDetails,
   handleAddtoCart,
 }) {
+    const { t } = useTranslation();
+
   return (
     <Card className="w-full max-w-sm mx-auto cursor-pointer flex flex-col h-full">
       {/* Phần nội dung chính */}
@@ -21,15 +25,15 @@ function ShoppingProductTile({
 
           {product?.totalStock === 0 ? (
             <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              Out Of Stock
+              {t("Hết hàng")}
             </Badge>
           ) : product?.totalStock < 10 ? (
             <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              {`Only ${product?.totalStock} left`}
+              {t(`Chỉ còn ${product?.totalStock} sản phẩm`)}
             </Badge>
           ) : product?.salePrice > 0 ? (
             <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              Sale
+              {t("Giảm giá")}
             </Badge>
           ) : null}
         </div>
@@ -39,7 +43,7 @@ function ShoppingProductTile({
             {product?.title}
           </h2>
           <div className="flex justify-between items-center mb-2 text-sm text-muted-foreground">
-            <span>{categoryOptionsMap[product?.category]}</span>
+            <span><span>{t(`${categoryOptionsMap[product?.category]}`)}</span></span>
             <span>{brandOptionsMap[product?.brand]}</span>
           </div>
 
@@ -64,14 +68,14 @@ function ShoppingProductTile({
       <CardFooter className="mt-auto">
         {product?.totalStock === 0 ? (
           <Button className="w-full opacity-60 cursor-not-allowed" disabled>
-            Out Of Stock
+            {t("Hết hàng")}
           </Button>
         ) : (
           <Button
             onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
             className="w-full"
           >
-            Add to cart
+            {t("Thêm vào giỏ hàng")}
           </Button>
         )}
       </CardFooter>

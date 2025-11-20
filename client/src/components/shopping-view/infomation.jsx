@@ -19,7 +19,10 @@ function UserInfo() {
     try {
       setLoading(true);
 
-      // ✅ 1. Cập nhật thông tin cơ bản
+      // Khởi tạo user mới dựa trên Redux hiện tại
+      let updatedUser = { ...user };
+
+      // ✅ 1. Cập nhật thông tin cơ bản (tên + email)
       const baseRes = await axios.put(
         "http://localhost:5000/api/shop/user/update",
         {
@@ -29,7 +32,9 @@ function UserInfo() {
         }
       );
 
-      let updatedUser = baseRes.data.user || { ...user, userName, email };
+      if (baseRes.data.user) {
+        updatedUser = { ...updatedUser, ...baseRes.data.user };
+      }
 
       // ✅ 2. Nếu có mật khẩu mới thì update riêng
       if (password.trim() !== "") {
@@ -50,12 +55,14 @@ function UserInfo() {
           formData
         );
 
-        if (avatarRes.data.success) {
-          updatedUser = avatarRes.data.user;
+        console.log("✅ avatarRes.data:", avatarRes.data); // <--- Thêm dòng này
+        if (avatarRes.data.success && avatarRes.data.user) {
+          updatedUser = { ...updatedUser, ...avatarRes.data.user };
         }
       }
 
-      // ✅ 4. Cập nhật Redux + localStorage để giữ dữ liệu khi F5
+
+      // ✅ 4. Lưu lại Redux + localStorage
       dispatch(updateUserDataRedux(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
@@ -68,6 +75,7 @@ function UserInfo() {
       setLoading(false);
     }
   };
+
 
   const handleAvatarSelect = (e) => {
     const file = e.target.files[0];

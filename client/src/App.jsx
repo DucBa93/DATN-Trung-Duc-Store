@@ -9,6 +9,7 @@ import AdminProducts from "./pages/admin-view/products";
 import AdminOrders from "./pages/admin-view/orders";
 import ShipperOrders from "./pages/shipper-view/orders";
 import AdminFeatures from "./pages/admin-view/features";
+import AdminCoupons from "./pages/admin-view/couponList";
 import ShoppingLayout from "./components/shopping-view/layout";
 import NotFound from "./pages/not-found";
 import ShoppingHome from "./pages/shopping-view/home";
@@ -25,9 +26,13 @@ import PaypalReturnPage from "./pages/shopping-view/payment-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
 import AdminAccounts from "./components/admin_view/account";
+import ShipperAccounts from "./components/admin_view/shipperAccount";
 import AdminStatistic from "./components/admin_view/statisstic";
 import ScrollToTop from "./components/common/scrollToTop";
 import { fetchAllProducts } from "./store/shop/products-slice";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import ShipperInformation from "./components/shipper_view/shipperInformation";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -70,6 +75,8 @@ function App() {
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
         </Route>
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
           path="/admin"
           element={
@@ -82,7 +89,9 @@ function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
+          <Route path="coupon" element={<AdminCoupons />} />
           <Route path="/admin/accounts" element={<AdminAccounts />} />
+          <Route path="/admin/shipper" element={<ShipperAccounts />} />
           <Route path="/admin/statistics" element={<AdminStatistic />} />
         </Route>
         <Route
@@ -94,6 +103,7 @@ function App() {
           }
         >
           <Route path="orders" element={<ShipperOrders />} />
+          <Route path="info" element={<ShipperInformation />} />
         </Route>
 
         <Route

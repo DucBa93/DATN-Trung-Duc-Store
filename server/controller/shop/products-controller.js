@@ -1,20 +1,5 @@
 const Product = require("../../models/Product");
 
-// 🟢 Lấy toàn bộ sản phẩm (không phân trang)
-// const getAllProducts = async (req, res) => {
-//   try {
-//     const products = await Product.find({});
-//     return res.json({
-//       success: true,
-//       products,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
 
 // 🟢 Lấy danh sách sản phẩm có lọc, sắp xếp, phân trang
 const getFilteredProducts = async (req, res) => {
@@ -22,6 +7,8 @@ const getFilteredProducts = async (req, res) => {
     const {
       category = "",
       brand = "",
+      color = "",
+      size = "",
       sortBy = "price-lowtohigh",
       page = 1,
       limit = 8,
@@ -30,6 +17,7 @@ const getFilteredProducts = async (req, res) => {
     // 🎯 Tạo object filter
     let filters = {};
 
+    // Lọc category
     if (category) {
       const categories = Array.isArray(category)
         ? category
@@ -37,12 +25,20 @@ const getFilteredProducts = async (req, res) => {
       filters.category = { $in: categories };
     }
 
-    if (req.query.brand) {
-      const brands = Array.isArray(req.query.brand)
-        ? req.query.brand
-        : req.query.brand.split(",");
+    // Lọc brand
+    if (brand) {
+      const brands = Array.isArray(brand) ? brand : brand.split(",");
+      filters.brand = brands.map((b) => b.toLowerCase().replace(/\s+/g, "-"));
+    }
 
-      filters.brand = brands.map(b => b.toLowerCase().replace(/\s+/g, "-"));
+    // Lọc theo màu (từ variants)
+    if (color) {
+      filters["variants.color"] = color;
+    }
+
+    // Lọc theo size (từ variants)
+    if (size) {
+      filters["variants.size"] = size;
     }
 
     // 🎯 Tạo object sort
@@ -73,7 +69,8 @@ const getFilteredProducts = async (req, res) => {
     const products = await Product.find(filters)
       .sort(sort)
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .select("-importPrice"); // ❗ Ẩn giá nhập cho user
 
     // 🟢 Trả kết quả
     res.status(200).json({
@@ -95,9 +92,15 @@ const getFilteredProducts = async (req, res) => {
   }
 };
 
+
+
+
+// 🟢 Lấy toàn bộ sản phẩm cho user
 const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find({}).sort({ createdAt: -1 }); // sắp xếp mới nhất
+    const products = await Product.find({})
+      .sort({ createdAt: -1 })
+      .select("-importPrice"); // ❗ Không trả giá nhập ra ngoài
 
     res.status(200).json({
       success: true,
@@ -114,11 +117,14 @@ const getAllProducts = async (req, res) => {
 };
 
 
+
+
 // 🟢 Lấy chi tiết 1 sản phẩm theo ID
 const getProductDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
+
+    const product = await Product.findById(id).select("-importPrice");
 
     if (!product) {
       return res.status(404).json({
@@ -139,6 +145,7 @@ const getProductDetails = async (req, res) => {
     });
   }
 };
+
 
 
 module.exports = { getFilteredProducts, getProductDetails, getAllProducts };

@@ -15,7 +15,7 @@ const initialState = {
 const login = () => {
   const [formData, setFormData] = useState(initialState)
   const dispatch = useDispatch()
-
+  
 
   function onSubmit (event){
     event.preventDefault()
@@ -48,6 +48,14 @@ const login = () => {
         setFormData={setFormData}
         onSubmit={onSubmit}
       />
+      <div className='text-center'>
+        <Link 
+          className='font-medium text-primary hover:!underline' 
+          to={'/auth/forgot-password'}
+        >
+          Quên mật khẩu?
+        </Link>
+      </div>
     </div>
   )
 }

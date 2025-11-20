@@ -1,4 +1,4 @@
-import ProductImageUpload from "@/components/admin_view/image-upload";
+import ProductImageUpload from "@/components/admin_view/image-upload-dash";
 import { Button } from "@/components/ui/button";
 import { addFeatureImage, getFeatureImages, deleteFeatureImage } from "@/store/common-slice";
 import { useEffect, useState } from "react";
@@ -52,7 +52,7 @@ function AdminDashboard() {
       />
 
       <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
-        Upload
+        Tải ảnh
       </Button>
 
       <div className="flex flex-col gap-4 mt-5">

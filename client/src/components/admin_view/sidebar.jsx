@@ -5,6 +5,8 @@ import {
   CircleUser,
   LayoutDashboard,
   ShoppingBasket,
+  TicketCheck,
+  Truck,
 } from "lucide-react";
 import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,31 +21,44 @@ import {
 const adminSidebarMenuItems = [
   {
     id: "dashboard",
-    label: "Dashboard",
+    label: "Ảnh Banner",
     path: "/admin/dashboard",
     icon: <LayoutDashboard />,
   },
   {
     id: "products",
-    label: "Products",
+    label: "Sản phẩm",
     path: "/admin/products",
     icon: <ShoppingBasket />,
   },
   {
     id: "orders",
-    label: "Orders",
+    label: "Đơn hàng",
     path: "/admin/orders",
     icon: <BadgeCheck />,
   },
   {
     id: "accounts",
-    label: "Accounts",
+    label: "Tài khoản",
     path: "/admin/accounts",
     icon: <CircleUser />,
   },
+
+  {
+    id: "shipepr",
+    label: "Shipper",
+    path: "/admin/shipper",
+    icon:<Truck />,
+  },
+  {
+    id: "coupon",
+    label: "Phiếu giảm giá",
+    path: "/admin/coupon",
+    icon: <TicketCheck />,
+  },
   {
     id: "statistics",
-    label: "Số liệu",
+    label: "Thống kê",
     path: "/admin/statistics",
     icon: <ChartPie />,
   },
@@ -87,7 +102,7 @@ function AdminSideBar({ open, setOpen }) {
           <SheetHeader className="border-b">
             <SheetTitle className="flex gap-2 mt-5 mb-5">
               <ChartNoAxesCombined size={30} />
-              <span className="text-2xl font-extrabold">Admin Panel</span>
+              <span className="text-2xl font-extrabold">Trang chủ Admin</span>
             </SheetTitle>
           </SheetHeader>
 
@@ -102,7 +117,7 @@ function AdminSideBar({ open, setOpen }) {
           className="flex cursor-pointer items-center gap-2"
         >
           <ChartNoAxesCombined size={30} />
-          <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+          <h1 className="text-2xl font-extrabold">Trang chủ admin</h1>
         </div>
         <MenuItems />
       </aside>

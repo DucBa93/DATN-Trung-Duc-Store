@@ -18,13 +18,13 @@ export const addReview = createAsyncThunk(
   }
 );
 
-export const getReviews = createAsyncThunk("/order/getReviews", async (id) => {
-  const response = await axios.get(
-    `http://localhost:5000/api/shop/review/${id}`
-  );
-
-  return response.data;
-});
+export const getReviews = createAsyncThunk(
+  "review/get",
+  async (productId) => {
+    const res = await axios.get(`http://localhost:5000/api/shop/review/${productId}`);
+    return res.data; // <— Quan trọng
+  }
+);
 
 const reviewSlice = createSlice({
   name: "reviewSlice",
@@ -37,7 +37,7 @@ const reviewSlice = createSlice({
       })
       .addCase(getReviews.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.reviews = action.payload.data;
+        state.reviews = action.payload.data || [];
       })
       .addCase(getReviews.rejected, (state) => {
         state.isLoading = false;

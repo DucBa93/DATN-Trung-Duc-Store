@@ -1,7 +1,7 @@
-import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
+import { UploadCloudIcon, XIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useEffect, useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { Skeleton } from "../ui/skeleton";
@@ -9,111 +9,164 @@ import { Skeleton } from "../ui/skeleton";
 function ProductImageUpload({
   imageFile,
   setImageFile,
-  imageLoadingState,
   uploadedImageUrl,
   setUploadedImageUrl,
-  setImageLoadingState,
-  isEditMode,
-  isCustomStyling = false,
+  subImages = [],
+  setSubImages = () => {},
 }) {
-  const inputRef = useRef(null);
+  const mainInputRef = useRef(null);
+  const subInputRef = useRef(null);
 
-  console.log(isEditMode, "isEditMode");
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [uploadingSub, setUploadingSub] = useState(false);
 
-  function handleImageFileChange(event) {
-    console.log(event.target.files, "event.target.files");
-    const selectedFile = event.target.files?.[0];
-    console.log(selectedFile);
+  // ==========================
+  // 1️⃣ Upload ảnh chính
+  // ==========================
+  const onMainFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setImageFile(file);
+  };
 
-    if (selectedFile) setImageFile(selectedFile);
-  }
+  const uploadMainImage = async () => {
+    if (!imageFile) return;
+    setUploadingMain(true);
 
-  function handleDragOver(event) {
-    event.preventDefault();
-  }
+    const form = new FormData();
+    form.append("my_file", imageFile);
 
-  function handleDrop(event) {
-    event.preventDefault();
-    const droppedFile = event.dataTransfer.files?.[0];
-    if (droppedFile) setImageFile(droppedFile);
-  }
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/admin/products/upload-image",
+        form
+      );
 
-  function handleRemoveImage() {
-    setImageFile(null);
-    if (inputRef.current) {
-      inputRef.current.value = "";
+      if (res?.data?.success) {
+        setUploadedImageUrl(res.data.result.url);
+      }
+    } catch (err) {
+      console.log("Upload main image failed:", err);
     }
-  }
 
-  async function uploadImageToCloudinary() {
-    setImageLoadingState(true);
-    const data = new FormData();
-    data.append("my_file", imageFile);
-    const response = await axios.post(
-      "http://localhost:5000/api/admin/products/upload-image",
-      data
-    );
-    console.log(response, "response");
-
-    if (response?.data?.success) {
-      setUploadedImageUrl(response.data.result.url);
-      setImageLoadingState(false);
-    }
-  }
+    setUploadingMain(false);
+  };
 
   useEffect(() => {
-    if (imageFile !== null) uploadImageToCloudinary();
+    if (imageFile) uploadMainImage();
   }, [imageFile]);
 
+  const removeMainImage = () => {
+    setImageFile(null);
+    setUploadedImageUrl("");
+    if (mainInputRef.current) mainInputRef.current.value = "";
+  };
+
+  // ==========================
+  // 2️⃣ Upload nhiều ảnh phụ
+  // ==========================
+  const onSubImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) uploadSubImages(files);
+    if (subInputRef.current) subInputRef.current.value = "";
+  };
+
+  const uploadSubImages = async (files) => {
+    setUploadingSub(true);
+
+    const uploadedUrls = [];
+
+    for (let file of files) {
+      const form = new FormData();
+      form.append("sub_files", file);
+
+      try {
+        const res = await axios.post(
+          "http://localhost:5000/api/admin/products/upload-sub-images",
+          form
+        );
+
+        if (res?.data?.success) {
+          uploadedUrls.push(...res.data.urls);
+        }
+      } catch (err) {
+        console.log("Upload sub image failed:", err);
+      }
+    }
+
+    // ✅ Truyền mảng mới trực tiếp lên parent
+    setSubImages([...subImages, ...uploadedUrls]);
+
+    setUploadingSub(false);
+  };
+
+  const removeSub = (url) => {
+    setSubImages(subImages.filter((img) => img !== url));
+  };
+
   return (
-    <div
-      className={`w-full  mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}
-    >
-      <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
-      <div
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className={`${
-          isEditMode ? "opacity-60" : ""
-        } border-2 border-dashed rounded-lg p-4`}
-      >
-        <Input
-          id="image-upload"
-          type="file"
-          className="hidden"
-          ref={inputRef}
-          onChange={handleImageFileChange}
-          disabled={isEditMode}
-        />
-        {!imageFile ? (
-          <Label
-            htmlFor="image-upload"
-            className={`${
-              isEditMode ? "cursor-not-allowed" : ""
-            } flex flex-col items-center justify-center h-32 cursor-pointer`}
-          >
-            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span>Drag & drop or click to upload image</span>
-          </Label>
-        ) : imageLoadingState ? (
-          <Skeleton className="h-10 bg-gray-100" />
-        ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <FileIcon className="w-8 text-primary mr-2 h-8" />
+    <div className="mt-4">
+      {/* Ảnh chính */}
+      <Label className="font-semibold mb-1 block">Ảnh chính</Label>
+
+      <Input
+        ref={mainInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onMainFileChange}
+      />
+
+      {!uploadedImageUrl && !imageFile ? (
+        <Label
+          className="border-2 border-dashed h-32 flex flex-col justify-center items-center cursor-pointer rounded-lg"
+          onClick={() => mainInputRef.current?.click()}
+        >
+          <UploadCloudIcon className="w-10 h-10 mb-2 text-gray-400" />
+          Chọn ảnh
+        </Label>
+      ) : uploadingMain ? (
+        <Skeleton className="w-full h-20" />
+      ) : (
+        <div className="flex gap-3 items-center mt-2">
+          <img
+            src={uploadedImageUrl}
+            className="w-20 h-20 object-cover rounded border"
+          />
+          <Button size="icon" variant="destructive" onClick={removeMainImage}>
+            <XIcon />
+          </Button>
+        </div>
+      )}
+
+      {/* Ảnh phụ */}
+      <Label className="font-semibold mt-4 block">Ảnh phụ</Label>
+
+      <Input
+        type="file"
+        multiple
+        accept="image/*"
+        ref={subInputRef}
+        onChange={onSubImageChange}
+        className="mt-2"
+      />
+
+      <div className="flex gap-3 flex-wrap mt-3">
+        {Array.isArray(subImages) &&
+          subImages.map((img, i) => (
+            <div key={i} className="relative">
+              <img className="w-20 h-20 object-cover rounded border" src={img} />
+              <Button
+                size="icon"
+                variant="destructive"
+                className="absolute -top-2 -right-2"
+                onClick={() => removeSub(img)}
+              >
+                <XIcon className="w-3 h-3" />
+              </Button>
             </div>
-            <p className="text-sm font-medium">{imageFile.name}</p>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={handleRemoveImage}
-            >
-              <XIcon className="w-4 h-4" />
-              <span className="sr-only">Remove File</span>
-            </Button>
-          </div>
-        )}
+          ))}
+
+        {uploadingSub && <Skeleton className="w-20 h-20" />}
       </div>
     </div>
   );

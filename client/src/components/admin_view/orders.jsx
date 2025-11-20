@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Dialog } from "../ui/dialog";
+import { Input, Pagination } from "antd";
 import {
   Table,
   TableBody,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import AdminOrderDetailsView from "./order-details";
+import ShipperOrderDetailsView from "./order-details";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersForAdmin,
@@ -27,13 +28,17 @@ import { toast } from "sonner";
 
 function AdminOrdersView() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const { orderList, orderDetails } = useSelector((state) => state.adminOrder);
+  const { orderList, orderDetails, pagination } = useSelector((state) => state.adminOrder);
   const dispatch = useDispatch();
 
   function handleFetchOrderDetails(getId) {
     dispatch(getOrderDetailsForAdmin(getId));
   }
-
+  
+  
+  const handleChangePage = (page) => {
+      dispatch(getAllOrdersForAdmin({ page, limit: pagination.limit }));
+    };
   const handleDeleteOrder = (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xoá đơn hàng này không?")) {
       dispatch(deleteOrderForAdmin(id)).then((data) => {
@@ -48,29 +53,33 @@ function AdminOrdersView() {
   };
 
   useEffect(() => {
-    dispatch(getAllOrdersForAdmin());
-  }, [dispatch]);
+    dispatch(getAllOrdersForAdmin({ page: pagination.page, limit: pagination.limit }));
+  }, [dispatch, pagination.page]);
+
 
 
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
   }, [orderDetails]);
-
+  console.log(orderList);
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All Orders</CardTitle>
+        <CardTitle>Tất cả đơn hàng</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Order Date</TableHead>
-              <TableHead>Order Status</TableHead>
-              <TableHead>Order Price</TableHead>
+              <TableHead>Mã đơn hàng</TableHead>
+              <TableHead>Thời gian đặt</TableHead>
+              <TableHead>Trạng thái đơn hàng</TableHead>
+              <TableHead>Giá sản phẩm</TableHead>
+              <TableHead>Phí vận chuyển</TableHead>
+              <TableHead>Giá tổng đơn hàng</TableHead>
               <TableHead>
-                <span className="sr-only">Details</span>
+                <span className="sr-only">Chi tiết</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -92,7 +101,9 @@ function AdminOrdersView() {
                       {orderItem?.orderStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell>{orderItem?.totalAmount.toLocaleString()} đ</TableCell>
+                  <TableCell>{orderItem?.totalAmount.toLocaleString()} đ</TableCell>             
+                  <TableCell>{orderItem?.shippingFee.toLocaleString()} đ</TableCell>
+                  <TableCell>{orderItem?.finalAmount.toLocaleString()} đ</TableCell>
                   <TableCell>
                     <Dialog
                       open={openDetailsDialog}
@@ -106,7 +117,7 @@ function AdminOrdersView() {
                           handleFetchOrderDetails(orderItem?._id)
                         }
                       >
-                        View Details
+                        Xem chi tiết
                       </Button>
                       <Button
                         variant="ghost"
@@ -115,7 +126,7 @@ function AdminOrdersView() {
                         title="Xoá đơn hàng"
                       ><Trash2 className="h-5 w-5 text-red-600 hover:text-red-700" />
                       </Button>
-                      <AdminOrderDetailsView orderDetails={orderDetails} />
+                      <ShipperOrderDetailsView orderDetails={orderDetails} />
                     </Dialog>
                   </TableCell>
                 </TableRow>
@@ -123,6 +134,17 @@ function AdminOrdersView() {
               : null}
           </TableBody>
         </Table>
+        {pagination?.totalPages > 1 && (
+          <div className="flex justify-center mt-10">
+            <Pagination
+              current={pagination.page}
+              total={pagination.totalItems}
+              pageSize={pagination.limit}
+              onChange={handleChangePage}
+              showSizeChanger={false}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

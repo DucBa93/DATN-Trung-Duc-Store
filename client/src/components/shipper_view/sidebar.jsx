@@ -5,6 +5,7 @@ import {
   CircleUser,
   LayoutDashboard,
   ShoppingBasket,
+  UserPlus,
 } from "lucide-react";
 import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,10 +20,17 @@ import {
 const shipperSidebarMenuItems = [
   {
     id: "orders",
-    label: "Orders",
-    path: "/admin/orders",
+    label: "Đơn hàng",
+    path: "/shipper/orders",
     icon: <BadgeCheck />,
   },
+  {
+    id: "info",
+    label: "Thông tin",
+    path: "/shipper/info",
+    icon: <UserPlus />,
+  },
+  
 ];
 
 function MenuItems({ setOpen }) {

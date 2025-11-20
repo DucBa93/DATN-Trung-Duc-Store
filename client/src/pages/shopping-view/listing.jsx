@@ -24,11 +24,11 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
-
   for (const [key, value] of Object.entries(filterParams)) {
     if (Array.isArray(value) && value.length > 0) {
       value.forEach((val) => {
@@ -42,6 +42,7 @@ function createSearchParamsHelper(filterParams) {
 
 
 function ShoppingListing() {
+    const { t } = useTranslation();
 
   const dispatch = useDispatch();
   const { productList, productDetails, pagination, allProducts } = useSelector(
@@ -56,7 +57,8 @@ function ShoppingListing() {
 
 
   // const { toast } = useToast();
-
+  console.log(cartItems.items);
+  
 
   const categorySearchParam = searchParams.get("category");
 
@@ -128,7 +130,7 @@ function ShoppingListing() {
       }
     }
 
-    toast.info("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
+    toast.info(`${t("Vui lòng chọn size trước khi thêm vào giỏ hàng!")}`);
     return;
   }
 
@@ -178,10 +180,10 @@ useEffect(() => {
       <ProductFilter filters={filters} handleFilter={handleFilter} />
       <div className="bg-background w-full rounded-lg shadow-sm">
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
+          <h2 className="text-lg font-extrabold">{t("Tất cả sản phẩm")}</h2>
           <div className="flex items-center gap-3">
             <span className="text-muted-foreground">
-              {productList?.length} Products
+              {t(`${productList?.length} sản phẩm`)} 
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -191,7 +193,7 @@ useEffect(() => {
                   className="flex items-center gap-1"
                 >
                   <ArrowUpDownIcon className="h-4 w-4" />
-                  <span>Sort by</span>
+                  <span>{t("Sắp xếp")}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">

@@ -23,12 +23,14 @@ import { toast } from "sonner";
 import { SiNike, SiPuma, SiNewbalance, SiMlb } from "react-icons/si";
 import { CgAdidas } from "react-icons/cg";
 import { Pagination } from "antd";
+import { useTranslation } from "react-i18next";
+
 
 const categoriesWithIcon = [
-  { id: "men", label: "Men", icon: Mars },
-  { id: "women", label: "Women", icon: Venus },
-  { id: "kids", label: "Kids", icon: Baby },
-  { id: "accessories", label: "Accessories", icon: WatchIcon },
+  { id: "men", label: "Nam", icon: Mars },
+  { id: "women", label: "Nữ", icon: Venus },
+  { id: "kids", label: "Trẻ em", icon: Baby },
+  { id: "accessories", label: "Phụ kiện", icon: WatchIcon },
 ];
 
 const brandsWithIcon = [
@@ -40,6 +42,7 @@ const brandsWithIcon = [
 ];
 
 function ShoppingHome() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const { productList, productDetails, pagination } = useSelector(
     (state) => state.shopProducts
@@ -181,7 +184,7 @@ function ShoppingHome() {
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
-            Shop by Category
+            {t("Sản phẩm theo danh mục")}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {categoriesWithIcon.map((categoryItem, index) => (
@@ -194,7 +197,7 @@ function ShoppingHome() {
               >
                 <CardContent className="flex flex-col items-center justify-center p-6">
                   <categoryItem.icon className="w-12 h-12 mb-4 text-primary" />
-                  <span className="font-bold">{categoryItem.label}</span>
+                  <span className="font-bold">{t(`${categoryItem.label}`)}</span>
                 </CardContent>
               </Card>
             ))}
@@ -205,7 +208,7 @@ function ShoppingHome() {
       {/* 🏷️ Brand */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">{t( "Sản phẩm theo thương hiệu")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {brandsWithIcon.map((brandItem, index) => (
               <Card
@@ -215,7 +218,7 @@ function ShoppingHome() {
               >
                 <CardContent className="flex flex-col items-center justify-center p-6">
                   <brandItem.icon className="w-12 h-12 mb-4 text-primary" />
-                  <span className="font-bold">{brandItem.label}</span>
+                  <span className="font-bold">{t(`${brandItem.label}`)}</span>
                 </CardContent>
               </Card>
             ))}
@@ -227,7 +230,7 @@ function ShoppingHome() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
-            Feature Products
+              {t("Sản phẩm đặc trưng")}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

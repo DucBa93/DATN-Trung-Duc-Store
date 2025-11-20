@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import store from './store/store'
 import { Toaster } from 'sonner'
 import ScrollToTop from './components/common/scrollToTop'
+import "./i18n";
 /*Nhờ Provider, bất kỳ component con nào cũng có thể truy cập state bằng 
 useSelector và thay đổi state bằng useDispatch*/
 createRoot(document.getElementById('root')).render(

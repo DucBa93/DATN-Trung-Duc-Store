@@ -6,23 +6,24 @@ const initialState = {
   isLoading: false,
 };
 
+// ✅ Thêm color và image vào payload
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ userId, productId, quantity, size }) => {
+  async ({ userId, productId, quantity, size, color, image}) => {
     const response = await axios.post(
       "http://localhost:5000/api/shop/cart/add",
       {
         userId,
         productId,
         quantity,
-        size, // ✅ thêm size ở đây
+        size,
+        color,  // thêm color
+        image,  // thêm image
       }
     );
-
     return response.data;
   }
 );
-
 
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
@@ -30,39 +31,46 @@ export const fetchCartItems = createAsyncThunk(
     const response = await axios.get(
       `http://localhost:5000/api/shop/cart/get/${userId}`
     );
-
     return response.data;
   }
 );
 
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
-  async ({ userId, productId , size }) => {
-    console.log("🛒 DELETE PARAM:", userId, productId, size);
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}/${size}`
+  async ({ userId, productId, size, color }) => {
+    const res = await axios.delete(
+      `http://localhost:5000/api/shop/cart/remove`,
+      {
+        data: {
+          userId,
+          productId,
+          size: size?.trim(),
+          color: color?.trim(),
+        },
+      }
     );
-
-    return response.data;
+    return res.data;
   }
 );
+
+
+
 
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
-  async ({ userId, productId, quantity, size }) => {
-    const response = await axios.put(
-      "http://localhost:5000/api/shop/cart/update-cart",
-      {
-        userId,
-        productId,
-        quantity,
-        size
-      }
-    );
-    console.log(userId, productId, quantity, size);
-    return response.data;
+  async ({ userId, productId, quantity, size, color, stock }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        "http://localhost:5000/api/shop/cart/update-cart",
+        { userId, productId, quantity, size, color, stock }
+      );
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
   }
 );
+
 
 const shoppingCartSlice = createSlice({
   name: "shoppingCart",
@@ -70,48 +78,52 @@ const shoppingCartSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // Add to cart
       .addCase(addToCart.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload.data;
+        state.cartItems = action.payload.data || [];
       })
       .addCase(addToCart.rejected, (state) => {
         state.isLoading = false;
-        state.cartItems = [];
       })
+
+      // Fetch cart
       .addCase(fetchCartItems.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchCartItems.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload.data;
+        state.cartItems = action.payload.data || [];
       })
       .addCase(fetchCartItems.rejected, (state) => {
         state.isLoading = false;
-        state.cartItems = [];
       })
+
+      // Update quantity
       .addCase(updateCartQuantity.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(updateCartQuantity.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload.data;
+        state.cartItems = action.payload.data || [];
       })
       .addCase(updateCartQuantity.rejected, (state) => {
         state.isLoading = false;
       })
+
+      // Delete cart item
       .addCase(deleteCartItem.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(deleteCartItem.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload.data;
+        state.cartItems = action.payload.data || [];
       })
       .addCase(deleteCartItem.rejected, (state) => {
         state.isLoading = false;
-        state.cartItems = [];
       });
   },
 });

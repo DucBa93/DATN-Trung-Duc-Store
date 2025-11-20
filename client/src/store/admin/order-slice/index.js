@@ -6,14 +6,20 @@ const initialState = {
   orderDetails: null,
   isLoading: false,
   error: null,
+  pagination: {
+    page: 1,
+    limit: 9,
+    totalPages: 1,
+    totalItems: 0,
+  },
 };
 
 // 🟢 Lấy tất cả đơn hàng
 export const getAllOrdersForAdmin = createAsyncThunk(
   "adminOrder/getAllOrdersForAdmin",
-  async () => {
+  async ({ page = 1, limit = 9 } = {}) => {
     const response = await axios.get(
-      "http://localhost:5000/api/admin/orders/get"
+      `http://localhost:5000/api/admin/orders/get?page=${page}&limit=${limit}`
     );
     return response.data;
   }
@@ -57,7 +63,6 @@ export const deleteOrderForAdmin = createAsyncThunk(
   }
 );
 
-
 // 🧩 Slice
 const adminOrderSlice = createSlice({
   name: "adminOrder",
@@ -75,7 +80,12 @@ const adminOrderSlice = createSlice({
       })
       .addCase(getAllOrdersForAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orderList = action.payload.data;
+        state.orderList = action.payload.data || [];
+
+        // Cập nhật phân trang
+        const { page = 1, limit = 9, totalPages = 1, totalItems = 0 } =
+          action.payload.pagination || {};
+        state.pagination = { page, limit, totalPages, totalItems };
       })
       .addCase(getAllOrdersForAdmin.rejected, (state) => {
         state.isLoading = false;

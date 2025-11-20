@@ -10,7 +10,10 @@ const router = express.Router();
 
 router.post("/add", addToCart);
 router.get("/get/:userId", fetchCartItems);
+
+// DELETE NOW SUPPORT COLOR
+router.delete("/remove", deleteCartItem);
+
 router.put("/update-cart", updateCartItemQty);
-router.delete("/:userId/:productId/:size", deleteCartItem); // 👈 thêm size vào params
 
 module.exports = router;

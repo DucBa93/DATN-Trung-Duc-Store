@@ -48,14 +48,14 @@ function AdminProductTile({
             }}
             className="w-[45%]"
           >
-            Edit
+            Sửa
           </Button>
           <Button
             onClick={() => handleDelete(product?._id)}
             variant="destructive"
             className="w-[45%]"
           >
-            Delete
+            Xoá
           </Button>
         </CardFooter>
       </div>

@@ -85,20 +85,29 @@ const uploadAvatar = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    // ✅ Gọi hàm helper
+    // ✅ Upload lên Cloudinary
     const result = await imageUploadUtil(req.file.path);
 
+    // ✅ Cập nhật avatar trong MongoDB
     user.avatar = result.secure_url;
     await user.save();
 
+    // ✅ Loại bỏ mật khẩu & trả user mới về client
     const userSafe = user.toObject();
     delete userSafe.password;
 
-    res.status(200).json({ success: true, message: "Avatar uploaded", user: userSafe });
+    console.log("✅ Avatar uploaded successfully:", userSafe.avatar);
+
+    return res.status(200).json({
+      success: true,
+      message: "Avatar uploaded",
+      user: userSafe, // 🔥 BẮT BUỘC phải có dòng này
+    });
   } catch (err) {
     console.error("Error uploadAvatar:", err);
     return res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 };
+
 
 module.exports = { updateUser, updatePassword, uploadAvatar };
