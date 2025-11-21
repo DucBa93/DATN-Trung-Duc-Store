@@ -24,7 +24,7 @@ export default function Chatbot() {
 
     try {
       const res = await axios.post(
-        "https://datn-trung-duc-store.vercel.app/api/chatbot/chat",
+        "https://datn-trung-duc-store.onrender.com/api/chatbot/chat",
         { message: userMsg.content }
       );
 

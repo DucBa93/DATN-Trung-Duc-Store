@@ -8,15 +8,15 @@ router.post("/chat", async (req, res) => {
 
   try {
     const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+      "https://api.deepseek.com/v1/chat/completions",
       {
-        model: "gpt-4o-mini",
+        model: "deepseek-chat", // Model miễn phí
         messages: [{ role: "user", content: message }]
       },
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
         }
       }
     );
@@ -24,8 +24,8 @@ router.post("/chat", async (req, res) => {
     res.json({
       reply: response.data.choices[0].message.content
     });
-  } catch (err) {
-    console.error(err.response?.data || err);
+  } catch (error) {
+    console.error("🔥 Chatbot error:", error.response?.data || error.message || error);
     res.status(500).json({ error: "Chatbot error" });
   }
 });
