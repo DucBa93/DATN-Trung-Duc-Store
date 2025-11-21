@@ -217,7 +217,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             </div>
             <div className="mt-3 text-muted-foreground text-base">
               {t("Đã bán")}:{" "}
-              <span className="font-bold text-primary">{productDetails?.sold} sản phẩm</span>
+              <span className="font-bold text-primary">{productDetails?.sold} {t("sản phẩm")}</span>
             </div>
             {/* Chọn màu */}
             <div className="mt-5">

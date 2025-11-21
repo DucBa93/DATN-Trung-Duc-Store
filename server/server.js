@@ -6,6 +6,7 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const { initSocket } = require("./socket");
+const {GoogleGenerativeAI } = require('@google/generative-ai')
 
 // --- ROUTES ---
 const notificationRouter = require("./routes/shop/notification-routes");
@@ -19,8 +20,7 @@ const shipperRoutes = require("./routes/admin/shipper-routes");
 
 
 //chatbot 
-const chatbotRouter = require("./routes/shop/chatbot-routes");
-
+const chatbotRouter = require("./routes/shop/chatbot-route.js") ;
 
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
@@ -70,7 +70,9 @@ app.use("/api/admin/statistics", StaRoutes);
 app.use("/api/admin/shipper", shipperRoutes);
 
 //Chat bot
+
 app.use("/api/chatbot", chatbotRouter);
+
 
 
 app.use("/api/shop/products", shopProductsRouter);

@@ -1,74 +1,102 @@
-import { useState } from "react";
-import axios from "axios"; 
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { MessageSquare, X } from "lucide-react";
 
 export default function Chatbot() {
-  const [open, setOpen] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [history, setHistory] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // Auto scroll to the bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = async () => {
-    if (!msg.trim()) return;
+    if (!input.trim()) return;
 
-    const userMsg = { sender: "user", text: msg };
-    setHistory((prev) => [...prev, userMsg]);
+    const userMsg = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
 
     try {
-      const res = await axios.post("https://datn-trung-duc-store.onrender.com/api/chatbot/ask", {
-        message: msg,
-        userId: localStorage.getItem("userId"),
-      });
+      const res = await axios.post(
+        "https://datn-trung-duc-store.vercel.app/api/chatbot/chat",
+        { message: userMsg.content }
+      );
 
-      const botMsg = { sender: "bot", text: res.data.answer };
-      setHistory((prev) => [...prev, botMsg]);
-
+      const botMsg = { role: "assistant", content: res.data.reply };
+      setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
-      setHistory((prev) => [
+      setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Lỗi chatbot, thử lại sau!" }
+        { role: "assistant", content: "❌ Bot bị lỗi, thử lại sau nhé!" }
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setMsg("");
   };
 
   return (
     <>
-      {/* Nút mở */}
+      {/* Nút mở chat */}
       <button
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg"
-        onClick={() => setOpen(!open)}
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition"
       >
-        💬
+        <MessageSquare size={24} />
       </button>
 
-      {/* Popup chat */}
-      {open && (
-        <div className="fixed bottom-20 right-6 w-80 bg-white shadow-xl rounded-xl p-4 border">
-          <div className="h-80 overflow-y-auto mb-2">
-            {history.map((m, i) => (
+      {/* Khung chat */}
+      {isOpen && (
+        <div className="fixed bottom-20 right-6 w-80 bg-white shadow-xl rounded-lg border flex flex-col">
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-3 rounded-t-lg flex justify-between items-center">
+            <span className="font-semibold">Chatbot hỗ trợ</span>
+            <button onClick={() => setIsOpen(false)}>
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="h-80 overflow-y-auto p-3 space-y-2">
+            {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`p-2 my-1 rounded-lg ${
-                  m.sender === "user"
-                    ? "bg-blue-100 text-right"
+                className={`p-2 rounded-lg max-w-[85%] ${
+                  msg.role === "user"
+                    ? "bg-blue-100 ml-auto"
                     : "bg-gray-100"
                 }`}
               >
-                {m.text}
+                {msg.content}
               </div>
             ))}
+
+            {loading && (
+              <div className="bg-gray-200 p-2 rounded-lg w-fit text-gray-600">
+                Bot đang trả lời...
+              </div>
+            )}
+
+            <div ref={messagesEndRef}></div>
           </div>
 
-          <div className="flex gap-2">
+          {/* Input */}
+          <div className="border-t p-2 flex gap-2">
             <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
+              className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none"
               placeholder="Nhập câu hỏi..."
-              className="flex-1 border p-2 rounded"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-blue-600 text-white px-3 rounded hover:bg-blue-700"
             >
               Gửi
             </button>
