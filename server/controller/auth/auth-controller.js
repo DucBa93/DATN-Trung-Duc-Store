@@ -51,13 +51,17 @@ const login = async (req, res) => {
       userName: user.userName,
     }, "CLIENT_SECRET_KEY", { expiresIn: "60m" });
 
-    res.cookie("token", token, { httpOnly: true, secure: false }).json({
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,          // BẮT BUỘC CHO VERSEL + RENDER
+      sameSite: "none",
+    }).json({
       success: true,
       message: "Logged in successfully",
-      user: { 
-        email: user.email, 
-        role: user.role, 
-        id: user._id, 
+      user: {
+        email: user.email,
+        role: user.role,
+        id: user._id,
         userName: user.userName,
         avatar: user.avatar || null,   // <-- thêm avatar ở đây
       },
@@ -71,7 +75,10 @@ const login = async (req, res) => {
 
 // Logout
 const logout = (req, res) => {
-  res.clearCookie("token").json({ success: true, message: "Đăng xuất thành công!" });
+  res.clearCookie("token" , {
+  secure: true,
+  sameSite: "none"
+}).json({ success: true, message: "Đăng xuất thành công!" });
 };
 
 // Auth middleware

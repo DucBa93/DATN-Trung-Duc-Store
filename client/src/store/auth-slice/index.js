@@ -12,17 +12,17 @@ const initialState = {
 };
 
 export const registerUser = createAsyncThunk("/auth/register", async (formData) => {
-    const response = await axios.post("http://localhost:5000/api/auth/register", formData, { withCredentials: true });
+    const response = await axios.post("https://datn-trung-duc-store.onrender.com/api/auth/register", formData, { withCredentials: true });
     return response.data;
 });
 
 export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
-    const response = await axios.post("http://localhost:5000/api/auth/login", formData, { withCredentials: true });
+    const response = await axios.post("https://datn-trung-duc-store.onrender.com/api/auth/login", formData, { withCredentials: true });
     return response.data;
 });
 
 export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
-    const response = await axios.get("http://localhost:5000/api/auth/check-auth", {
+    const response = await axios.get("https://datn-trung-duc-store.onrender.com/api/auth/check-auth", {
         withCredentials: true,
         headers: {
             "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -32,7 +32,7 @@ export const checkAuth = createAsyncThunk("/auth/check-auth", async () => {
 });
 
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
-    const response = await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
+    const response = await axios.post("https://datn-trung-duc-store.onrender.com/api/auth/logout", {}, { withCredentials: true });
     return response.data;
 });
 
