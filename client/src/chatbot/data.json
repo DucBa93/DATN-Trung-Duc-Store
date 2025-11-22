@@ -1,0 +1,146 @@
+{
+    "intents": [
+        {
+            "tag": "greeting",
+            "patterns": [
+                "hello",
+                "hi",
+                "xin chào",
+                "chào shop",
+                "alo",
+                "ad ơi",
+                "shop oi"
+            ],
+            "responses": [
+                "Xin chào! Bạn muốn tìm sản phẩm nào? 😊",
+                "Shop xin chào! Mình có thể hỗ trợ gì cho bạn?"
+            ]
+        },
+        {
+            "tag": "buy_product",
+            "patterns": [
+                "tôi muốn mua sản phẩm",
+                "mua hàng",
+                "mua đồ",
+                "mua sản phẩm này",
+                "tư vấn mua hàng",
+                "cách đặt hàng"
+            ],
+            "responses": [
+                "Để mua hàng bạn chỉ cần chọn sản phẩm, chọn size – màu và thêm vào giỏ nhé 🛒",
+                "Bạn muốn mua sản phẩm nào? Mình có thể kiểm tra giúp!"
+            ]
+        },
+        {
+            "tag": "shipping",
+            "patterns": [
+                "giao hàng sao",
+                "ship sao",
+                "vận chuyển thế nào",
+                "phí ship",
+                "ship có đắt không",
+                "giao hàng có tốn phí không"
+            ],
+            "responses": [
+                "Shop ship toàn quốc 🚚. Thời gian giao 2–4 ngày và phí ship chỉ từ 25k – 35k tùy khu vực.",
+                "Phí ship từ 25k–35k, đơn trên 500k được **free ship** bạn nhé!"
+            ]
+        },
+        {
+            "tag": "store_location",
+            "patterns": [
+                "shop ở đâu",
+                "địa chỉ shop",
+                "cửa hàng ở đâu",
+                "shop có địa chỉ không",
+                "shop có cửa hàng không"
+            ],
+            "responses": [
+                "Hiện tại shop hoạt động online 100% 📦. Bạn cứ đặt hàng, shop giao tận nơi nhé!",
+                "Shop đang bán online, bạn chỉ cần đặt hàng và bên mình ship tận nhà luôn!"
+            ]
+        },
+        {
+            "tag": "stock",
+            "patterns": [
+                "còn hàng không",
+                "còn size không",
+                "còn màu này không",
+                "hết hàng chưa",
+                "sản phẩm này còn không"
+            ],
+            "responses": [
+                "Bạn vui lòng cho mình biết **tên sản phẩm** để mình kiểm tra tồn kho giúp nhé 😊",
+                "Bạn cung cấp tên sản phẩm để shop kiểm tra size – màu còn không nha!"
+            ]
+        },
+        {
+            "tag": "promotion",
+            "patterns": [
+                "khuyến mãi",
+                "sale không",
+                "giảm giá không",
+                "đang sale không"
+            ],
+            "responses": [
+                "Shop đang có nhiều sản phẩm sale hấp dẫn 🔥 Bạn hỏi tên sản phẩm để mình kiểm tra giá mới nhé!",
+                "Hiện đang có một số mẫu sale, bạn cho mình biết sản phẩm bạn quan tâm nhé!"
+            ]
+        },
+        {
+            "tag": "payment",
+            "patterns": [
+                "thanh toán sao",
+                "có cod không",
+                "có thanh toán khi nhận hàng không",
+                "trả tiền thế nào",
+                "có chuyển khoản không"
+            ],
+            "responses": [
+                "Shop hỗ trợ thanh toán COD (nhận hàng rồi trả tiền) và chuyển khoản ngân hàng 💳",
+                "Bạn có thể thanh toán khi nhận hàng hoặc chuyển khoản đều được nhé!"
+            ]
+        },
+        {
+            "tag": "return_policy",
+            "patterns": [
+                "đổi trả thế nào",
+                "bảo hành",
+                "đổi size",
+                "đổi hàng"
+            ],
+            "responses": [
+                "Shop hỗ trợ đổi trả trong 7 ngày nếu sản phẩm còn mới và chưa sử dụng nhé! 🔄",
+                "Nếu sản phẩm lỗi hoặc giao sai, shop hỗ trợ đổi miễn phí nha!"
+            ]
+        },
+        {
+            "tag": "thanks",
+            "patterns": [
+                "cảm ơn",
+                "thanks",
+                "thank you"
+            ],
+            "responses": [
+                "Cảm ơn bạn đã tin tưởng shop 🥰",
+                "Rất vui được hỗ trợ bạn!"
+            ]
+        },
+        {
+            "tag": "ask_top_products",
+            "patterns": [
+                "tư vấn",
+                "gợi ý sản phẩm",
+                "tư vấn cho tôi",
+                "tôi muốn gợi ý",
+                "shop gợi ý đi",
+                "gợi ý giày",
+                "nên mua gì"
+            ],
+            "responses": [
+                "Bạn muốn tư vấn về loại sản phẩm nào ạ? Ví dụ: giày nike, áo jordan, dép adidas…",
+                "Bạn muốn mình gợi ý nhóm sản phẩm nào? Ví dụ: giày nam, nữ, trẻ em hay phụ kiện…"
+            ]
+        }
+    ]
+}

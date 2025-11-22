@@ -1,20 +1,16 @@
 const Order = require("../../models/order");
-const { notifyUser, notifyAdmin } = require("../../socket")
-const Notification = require("../../models/notification")
-// 🟢 Lấy tất cả đơn hàng (Admin) - sắp xếp theo ngày mới nhất + phân trang
+const Notification = require("../../models/notification");
+const { notifyUser, notifyAdmin } = require("../../socket");
+
+// 🟢 Lấy tất cả đơn hàng (Admin)
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 9;
 
-    // Tổng số đơn hàng
     const totalOrders = await Order.countDocuments();
-
-    // Tính số trang
     const totalPages = Math.ceil(totalOrders / limit);
 
-    // Lấy danh sách đơn hàng, sắp xếp theo orderDate giảm dần (mới nhất trước)
-    // Nếu orderDate không có, fallback dùng createdAt
     const orders = await Order.find({})
       .sort({ orderDate: -1, createdAt: -1 })
       .skip((page - 1) * limit)
@@ -23,86 +19,109 @@ const getAllOrdersOfAllUsers = async (req, res) => {
     res.status(200).json({
       success: true,
       data: orders,
-      pagination: {
-        page,
-        limit,
-        totalPages,
-        totalItems: totalOrders,
-      },
+      pagination: { page, limit, totalPages, totalItems: totalOrders },
     });
   } catch (error) {
     console.error("❌ getAllOrdersOfAllUsers error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error occurred while fetching orders",
-    });
+    res.status(500).json({ success: false, message: "Error fetching orders" });
   }
 };
 
-// 🟢 Lấy chi tiết đơn hàng theo ID
+// 🟢 Chi tiết đơn hàng cho admin
 const getOrderDetailsForAdmin = async (req, res) => {
   try {
     const { id } = req.params;
 
     const order = await Order.findById(id);
-
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found!",
-      });
+      return res.status(404).json({ success: false, message: "Order not found!" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: order,
-    });
+    res.status(200).json({ success: true, data: order });
   } catch (error) {
     console.error("❌ getOrderDetailsForAdmin error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
+    res.status(500).json({ success: false, message: "Some error occurred!" });
   }
 };
 
+// 🟢 User yêu cầu huỷ đơn hàng
+const userRequestCancelOrder = async (req, res) => {
+  try {
+    const { orderId, userId, reason } = req.body;
 
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found!" });
 
-// 🟢 Cập nhật trạng thái đơn hàng
+    order.orderStatus = "cancel_requested";
+    order.cancelReason = reason;
+    await order.save();
+
+    // 📢 Lưu thông báo cho Admin
+    const message = `📮 Người dùng yêu cầu hủy đơn #${orderId}. Lý do: ${reason}`;
+
+    await Notification.create({
+      userId: null,
+      message,
+      type: "order-cancel-request",
+    });
+
+    // 📢 Gửi socket đến Admin
+    notifyAdmin({
+      type: "order-cancel-request",
+      orderId,
+      userId,
+      reason,
+      message,
+    });
+
+    res.json({ success: true, message: "Đã gửi yêu cầu huỷ đơn!" });
+  } catch (err) {
+    console.error("❌ userRequestCancelOrder:", err);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+// 🟢 Cập nhật trạng thái đơn hàng (Admin/Shipper)
 const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { orderStatus, shipperId } = req.body; // shipperId: người thay đổi (nếu cần ghi log)
+    const { orderStatus } = req.body;
 
     const order = await Order.findById(id);
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found!",
-      });
-    }
+    if (!order) return res.status(404).json({ message: "Order not found!" });
 
-    // 🟠 Lưu trạng thái mới
     order.orderStatus = orderStatus;
     await order.save();
 
-    // ✅ Thông báo cho User
-    const messageUser = `📦 Đơn hàng ${order._id} của bạn đã được cập nhật trạng thái: ${orderStatus}`;
+    // 📩 Message gửi User
+    const userMessage = `Đơn hàng #${order._id} đã được cập nhật sang trạng thái: ${orderStatus}`;
+
     await Notification.create({
       userId: order.userId,
-      message: messageUser,
+      message: userMessage,
       type: "order-update",
     });
-    notifyUser(order.userId, messageUser);
 
-    // ✅ Thông báo cho Admin
-    const messageAdmin = `🚚 Shipper đã cập nhật đơn hàng ${order._id} sang trạng thái: ${orderStatus}`;
+    // 📩 Gửi socket cho User
+    notifyUser(order.userId, {
+      type: "order-update",
+      orderId: order._id,
+      message: userMessage,
+    });
+
+    // 📩 Gửi socket + lưu cho Admin
+    const adminMessage = `📦 Đơn hàng #${order._id} được cập nhật trạng thái: ${orderStatus}`;
     await Notification.create({
-      userId: null, // null = gửi admin (giống cách bạn làm với product)
-      message: messageAdmin,
+      userId: null,
+      message: adminMessage,
       type: "order-update-admin",
     });
-    notifyAdmin(messageAdmin);
+
+    notifyAdmin({
+      type: "order-update-admin",
+      orderId: order._id,
+      message: adminMessage,
+    });
 
     res.status(200).json({
       success: true,
@@ -110,27 +129,32 @@ const updateOrderStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ updateOrderStatus error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
+    res.status(500).json({ success: false, message: "Some error occurred!" });
   }
 };
 
-
-
-// 🟢 Xoá đơn hàng
+// 🟢 Xoá đơn hàng (Admin)
 const deleteOrderForAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await Order.findByIdAndDelete(id);
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found!",
-      });
-    }
+    const order = await Order.findByIdAndDelete(id);
+    if (!order) return res.status(404).json({ message: "Order not found!" });
+
+    // 📩 Lưu & gửi socket cho User
+    const message = `🚫 Đơn hàng #${id} của bạn đã được huỷ thành công.`;
+
+    await Notification.create({
+      userId: order.userId,
+      message,
+      type: "order-deleted",
+    });
+
+    notifyUser(order.userId, {
+      type: "order-deleted",
+      orderId: id,
+      message,
+    });
 
     res.status(200).json({
       success: true,
@@ -150,4 +174,5 @@ module.exports = {
   getOrderDetailsForAdmin,
   updateOrderStatus,
   deleteOrderForAdmin,
+  userRequestCancelOrder,
 };

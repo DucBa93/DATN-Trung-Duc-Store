@@ -17,8 +17,8 @@ export const addToCart = createAsyncThunk(
         productId,
         quantity,
         size,
-        color,  // thêm color
-        image,  // thêm image
+        color,  
+        image, 
       }
     );
     return response.data;

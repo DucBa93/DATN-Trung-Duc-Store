@@ -147,6 +147,8 @@ function ShoppingCheckout() {
             ? singleCartItem?.salePrice
             : singleCartItem?.price,
         quantity: singleCartItem?.quantity,
+        color: singleCartItem.color,
+        size: singleCartItem.size
       })),
       addressInfo: {
         addressId: currentSelectedAddress?._id,
@@ -185,7 +187,7 @@ function ShoppingCheckout() {
   if (approvalURL) {
     window.location.href = approvalURL;
   }
-
+  
   return (
     <div className="flex flex-col">
       <div className="relative h-[300px] w-full overflow-hidden">

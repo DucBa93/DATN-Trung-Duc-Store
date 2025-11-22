@@ -6,11 +6,8 @@ import { Separator } from "../ui/separator";
 
 function ShoppingOrderDetailsView({ orderDetails }) {
   const { user } = useSelector((state) => state.auth);
-
-  console.log("DEBUG orderDetails:", orderDetails);
-
  
-
+  
   return (
     <DialogContent className="grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[500px]">
       <div className="grid gap-6">

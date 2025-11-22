@@ -45,9 +45,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const availableColors = productDetails?.variants?.map((v) => v.color) || [];
   // Lấy danh sách size theo màu đã chọn
   const availableSizes =
-    selectedColor && productDetails?.variants
-      ? productDetails.variants
-        .find((v) => v.color === selectedColor)
+  selectedColor && productDetails?.variants
+    ? productDetails.variants
+        .find((v) => v.color.trim().toLowerCase() === selectedColor.trim().toLowerCase())
         ?.sizes.filter((s) => s.stock > 0) || []
       : [];
   // Khi chọn màu
@@ -70,30 +70,34 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   // Nếu chưa chọn màu → load gallery chung
   useEffect(() => {
-    if (!productDetails?.variants?.length) return;
+  if (!productDetails?.variants?.length) return;
 
-    const firstVariant = productDetails.variants[0];
-    setSelectedColor(firstVariant.color);
-    setSelectedSize("");
+  const firstVariant = productDetails.variants[0];
+  setSelectedColor(firstVariant.color);
 
-    // Nếu mainImage rỗng → lấy subImages[0]
-    const mainImg = firstVariant.mainImage || firstVariant.subImages?.[0] || productDetails.image || "";
-    setSelectedImage(mainImg);
+- setSelectedSize(""); 
++ setSelectedSize(firstVariant.sizes?.[0]?.size || "");  // Chọn size đầu tiên luôn
 
-    // Display gallery: mainImage + subImages
-    const galleryImages = [
-      mainImg,
-      ...(firstVariant.subImages?.filter((img) => img !== mainImg) || []),
-    ];
-    setDisplayImages(galleryImages);
-  }, [productDetails]);
+  const mainImg = firstVariant.mainImage || firstVariant.subImages?.[0] || productDetails.image || "";
+  setSelectedImage(mainImg);
+
+  const galleryImages = [
+    mainImg,
+    ...(firstVariant.subImages?.filter((img) => img !== mainImg) || []),
+  ];
+  setDisplayImages(galleryImages);
+}, [productDetails]);
+
 
 
   const handleAddToCart = () => {
     if (!selectedColor) return toast.info("Chọn màu trước!");
     if (!selectedSize) return toast.info("Vui lòng chọn size trước!");
 
-    const variant = productDetails.variants.find(v => v.color === selectedColor);
+    const variant = productDetails.variants.find(
+  v => v.color.trim().toLowerCase() === selectedColor.trim().toLowerCase()
+);
+
     const sizeObj = variant.sizes.find(s => s.size === selectedSize);
     if (!variant || !sizeObj) return toast.warning("Phiên bản sản phẩm không hợp lệ");
 
@@ -104,7 +108,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       title: productDetails.title,
       price: productDetails.price,
       salePrice: productDetails.salePrice,
-      size: selectedSize.trim().toLowerCase(),
+      size: selectedSize.toString().trim(),
       color: selectedColor.trim().toLowerCase(),
       image: imageToSend,
       quantity: 1

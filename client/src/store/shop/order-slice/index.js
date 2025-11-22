@@ -47,6 +47,16 @@ export const getAllOrdersByUserId = createAsyncThunk(
     return response.data;
   }
 );
+export const cancelOrder = createAsyncThunk(
+  "order/cancelOrder",
+  async ({ orderId, reason }) => {
+    const res = await axios.put(
+      `http://localhost:5000/api/shop/order/cancel/${orderId}`,
+      { reason }
+    );
+    return res.data;
+  }
+);
 
 export const getOrderDetails = createAsyncThunk(
   "/order/getOrderDetails",
@@ -92,6 +102,7 @@ const shoppingOrderSlice = createSlice({
       .addCase(getAllOrdersByUserId.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = action.payload.data;
+        
       })
       .addCase(getAllOrdersByUserId.rejected, (state) => {
         state.isLoading = false;
@@ -107,6 +118,14 @@ const shoppingOrderSlice = createSlice({
       .addCase(getOrderDetails.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
+      })
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        const updatedOrder = action.payload.order;
+
+        // Cập nhật trạng thái trong orderList
+        state.orderList = state.orderList.map((o) =>
+          o._id === updatedOrder._id ? updatedOrder : o
+        );
       });
   },
 });

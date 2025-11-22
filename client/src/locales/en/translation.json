@@ -73,6 +73,12 @@
   "Sửa": "Edit",
   "Thêm": "Add",
   "Đã bán": "Sold",
-  "Sản phẩm": "products",
-  "Tổng giá sản phẩm dự kiến": "Total expected product price"
+  "sản phẩm": "products",
+  "Tổng giá sản phẩm dự kiến": "Total expected product price",
+  "Kem": "Cream",
+  "Đen": "Black",
+  "Xanh than": "Charcoal",
+  "Trắng - Đen": "Black / White",
+  "Xanh": "Blue",
+  "Trắng":"White"
 }

@@ -1,6 +1,5 @@
 const express = require("express");
 const axios = require("axios");
-
 const router = express.Router();
 
 router.post("/chat", async (req, res) => {
@@ -8,24 +7,20 @@ router.post("/chat", async (req, res) => {
 
   try {
     const response = await axios.post(
-      "https://api.deepseek.com/v1/chat/completions",
-      {
-        model: "deepseek-chat", // Model miễn phí
-        messages: [{ role: "user", content: message }]
-      },
+      "https://router.huggingface.co/models/google/gemma-2b-it",
+      { inputs: message },
       {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
+          "Content-Type": "application/json"
         }
       }
     );
 
-    res.json({
-      reply: response.data.choices[0].message.content
-    });
+    const reply = response.data?.[0]?.generated_text || "Model không trả lời.";
+
+    res.json({ reply });
   } catch (error) {
-    console.error("🔥 Chatbot error:", error.response?.data || error.message || error);
+    console.error(error.response?.data || error);
     res.status(500).json({ error: "Chatbot error" });
   }
 });

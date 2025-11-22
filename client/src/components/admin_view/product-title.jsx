@@ -21,21 +21,18 @@ function AdminProductTile({
 
         {/* Card Content - chiếm hết không gian còn lại */}
         <CardContent className="flex flex-col flex-grow">
-          <h2 className="text-xl font-bold mb-2 mt-2">{product?.title}</h2>
-          <p className="italic flex-grow">{product?.description}</p>
+          <h2 className="text-md font-bold mb-2 mt-2">Tên sản phẩm : {product?.title}</h2>
+          <p className=" flex-grow"><span className="font-bold">Mô tả:</span> {product?.description}</p>
+          <p className=" flex-grow"><span className="font-bold">Thương hiệu:</span> {product?.brand}</p>
+          <p className=" flex-grow"><span className="font-bold">Giá nhập:</span> {product?.importPrice}</p>
+          <p className=" flex-grow"><span className="font-bold">Giá bán:</span> {product?.price}</p>
+          <p className=" flex-grow"><span className="font-bold">Giá đang sale: </span>{product?.salePrice}</p>
+          <p className=" flex-grow"><span className="font-bold">Số lượng đã: </span>  {product?.sold}</p>
+          <p className=" flex-grow"><span className="font-bold">Số màu:</span> {product?.variants.length}</p>
+          <p className=" flex-grow"><span className="font-bold">Tồn kho:</span> {product?.totalStock}</p>
+         
 
-          <div className="flex gap-4 justify-between items-center mt-3">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-black`}
-            >
-              {product?.price.toLocaleString()} đ
-            </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-bold">{product?.salePrice.toLocaleString()} đ</span>
-            ) : null}
-          </div>
+          
         </CardContent>
 
         {/* Footer luôn dính đáy */}

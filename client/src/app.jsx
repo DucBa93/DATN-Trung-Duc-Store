@@ -33,7 +33,7 @@ import { fetchAllProducts } from "./store/shop/products-slice";
 import ForgotPassword from "./pages/auth/forgotPassword";
 import ResetPassword from "./pages/auth/resetPassword";
 import ShipperInformation from "./components/shipper_view/shipperInformation";
-import Chatbot from "./components/chatbot/chatbot";
+import Chatbot from "./components/chatbot/ChatWidget";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -51,7 +51,6 @@ function App() {
   }, [dispatch]);
   if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
 
-  console.log(isLoading, user);
 
   return (
     <div className="flex flex-col  bg-white">

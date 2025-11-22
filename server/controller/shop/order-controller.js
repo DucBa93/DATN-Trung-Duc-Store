@@ -27,7 +27,8 @@ const createOrder = async (req, res) => {
       orderUpdateDate,
       shippingFee = 0
     } = req.body;
-
+    console.log("CartItem",cartItems);
+    
     if (!cartItems || !cartItems.length)
       return res.status(400).json({ success: false, message: "Cart is empty" });
 
@@ -37,9 +38,22 @@ const createOrder = async (req, res) => {
         const product = await Product.findById(item.productId);
         if (!product) throw new Error(`Product not found: ${item.title}`);
 
-        const variant = product.variants.find(v => v.color === item.color) || product.variants[0];
-        const sizeObj = variant.sizes.find(s => s.size === item.size) || variant.sizes[0];
+        // chọn variant đúng màu hoặc lấy variant đầu tiên
+        const variant =
+          product.variants.find(
+            (v) =>
+              v.color?.trim().toLowerCase() === item.color?.trim().toLowerCase()
+          ) || product.variants[0];
 
+        // chọn size đúng hoặc lấy size đầu tiên
+        const sizeObj =
+          variant.sizes.find(
+            (s) =>
+              s.size?.toString().trim() === item.size?.toString().trim()
+          ) || variant.sizes[0];
+
+        
+        
         return {
           productId: item.productId,
           title: item.title,
@@ -47,10 +61,11 @@ const createOrder = async (req, res) => {
           quantity: item.quantity,
           color: variant.color,
           size: sizeObj.size,
-          image: item.image || variant.mainImage || product.image
+          image: item.image || variant.mainImage || product.image,
         };
       })
     );
+
 
 
     // =============================================================
@@ -93,9 +108,12 @@ const createOrder = async (req, res) => {
           if (!variant) continue;
 
           // tìm size
-          const sizeObj = variant.sizes.find(
-            s => s.size.trim().toLowerCase() === item.size.trim().toLowerCase()
-          );
+          const sizeObj =
+          variant.sizes.find(
+            (s) =>
+              s.size?.toString().trim() === item.size?.toString().trim()
+          ) || variant.sizes[0];
+
           if (!sizeObj) continue;
 
           // giảm stock đúng size
@@ -265,13 +283,20 @@ const capturePayment = async (req, res) => {
       );
       if (!variant) continue;
 
-      const sizeObj = variant.sizes.find(
-        s => s.size.trim().toLowerCase() === item.size.trim().toLowerCase()
-      );
-      if (!sizeObj) continue;
+      const sizeObj =
+          variant.sizes.find(
+            (s) =>
+              s.size?.toString().trim() === item.size?.toString().trim()
+          ) || variant.sizes[0];
+
+
+      if (!sizeObj) {
+        throw new Error(`Size "${item.size}" not found for product ${item.productId}`);
+      }
+
 
       // giảm tồn kho đúng size
-      sizeObj.stock = Math.max(sizeObj.stock - item.quantity, 0);
+      sizeObj.stock = Math.max(sizeObj.stock - (item.quantity / 2), 0);
       // tăng số lượng bán
       product.sold = product.sold + (item.quantity / 2);
       // cập nhật tổng tồn kho
@@ -320,9 +345,50 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
+//huỷ đơn
+const cancelOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // ❌ Đánh dấu trạng thái hủy
+    order.orderStatus = "canceled";
+    order.cancelReason = reason;
+    await order.save();
+
+    // 🔔 Gửi thông báo cho Admin
+    const messageAdmin = `Khách hàng đã hủy đơn ${order._id} (Lý do: ${reason})`;
+
+    await Notification.create({
+      userId: null,
+      type: "order-cancel",
+      message: messageAdmin
+    });
+
+    notifyAdmin({
+      type: "order-cancel",
+      message: messageAdmin
+    });
+
+    res.status(200).json({
+      message: "Order canceled successfully",
+      order,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error canceling order" });
+  }
+};
+
 module.exports = {
   createOrder,
   capturePayment,
   getAllOrdersByUser,
   getOrderDetails,
+  cancelOrder
 };
